@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from adversaries.common import Adversary
+from src.adversaries.common import Adversary
 
 
 class StAdv(Adversary):

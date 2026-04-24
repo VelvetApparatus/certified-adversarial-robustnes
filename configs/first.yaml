@@ -1,0 +1,29 @@
+model:
+  name: resnet18
+  weights_path: ./data/models/resnet18_cifar10_full.pth
+
+dataset:
+  name: cifar10
+  root_dir: ./data/dataset/cifar_10
+  train: false
+  download: true
+  batch_size: 128
+
+attacks:
+  - name: fgsm
+    epsilon: 0.03137
+    loss_fn: cross_entropy
+
+  - name: pgd
+    epsilon: 0.03137
+    alpha: 0.00784
+    steps: 10
+    norm: Linf
+    loss_fn: cross_entropy
+
+  - name: stadv
+    alpha: 0.01
+    steps: 100
+    tau: 0.05
+    targeted: false
+    loss_fn: cross_entropy
