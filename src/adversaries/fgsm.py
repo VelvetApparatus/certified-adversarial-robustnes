@@ -1,4 +1,4 @@
-from adversaries.common import Adversary
+from src.adversaries.common import Adversary
 import torch
 import torch.nn as nn
 

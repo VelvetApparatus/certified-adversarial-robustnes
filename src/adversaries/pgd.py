@@ -3,7 +3,7 @@ from typing import Literal
 import torch
 from torch import nn
 
-from adversaries.common import Adversary
+from src.adversaries.common import Adversary
 
 
 class PGD(Adversary):
