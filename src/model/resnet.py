@@ -16,19 +16,25 @@ def _get_resnet18(num_classes=10):
 
 
 # Load a pretrained model
-def _load_model(model_path, num_classes=10):
+def _load_model(
+        model_path,
+        device: str = 'cpu',
+        num_classes=10,
+
+):
     model = _get_resnet18(num_classes=num_classes)
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, map_location=device))
     return model
 
 
 def build_resnet_18_10(
         weights_path: str = None,
+        device: str = 'cpu',
 ):
     if not os.path.exists(weights_path):
         raise FileNotFoundError("invalid path for custom weights: {}".format(weights_path))
 
-    return _load_model(weights_path)
+    return _load_model(weights_path, device)
 
 
 def build_wide_resnet_28_10(
