@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import torch
 from torch.utils.data import DataLoader
@@ -36,7 +37,7 @@ def main():
     cfg = load_config(args.config)
     device = get_device()
 
-    model = get_model(cfg.model).to(device)
+    model = get_model(cfg.model, device).to(device)
     criterion = get_loss_fn("cross_entropy")
 
     if cfg.dataset.train:
@@ -90,4 +91,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print(os.getcwd())
     main()

@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Literal, List, Union
 import yaml
+from torchvision.transforms import Compose
 
 LossName = Literal["cross_entropy"]
 NormName = Literal["Linf", "l2"]
@@ -21,6 +22,7 @@ class DatasetConfig:
     train: bool = False
     download: bool = True
     batch_size: int = 128
+    transform: Optional[Compose] = None
 
 
 @dataclass
@@ -113,6 +115,7 @@ def load_config(path: str) -> ExperimentConfig:
     )
 
     dataset_cfg = DatasetConfig(
+        name=raw["dataset"]["name"],
         root_dir=raw["dataset"].get("root_dir", "./data"),
         train=raw["dataset"].get("train", False),
         download=raw["dataset"].get("download", True),
