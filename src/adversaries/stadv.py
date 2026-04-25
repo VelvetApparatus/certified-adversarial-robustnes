@@ -26,8 +26,7 @@ class StAdv(Adversary):
         self.tau = tau
         self.targeted = targeted
 
-    def gen(self, model, X, y, y_target=None):
-        model.eval()
+    def _gen(self, model, X, y, y_target=None):
         X = X.detach().clone()
 
         B, C, H, W = X.shape

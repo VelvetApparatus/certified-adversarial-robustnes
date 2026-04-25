@@ -12,6 +12,7 @@ class FGSMAttack(Adversary):
         Link: https://arxiv.org/abs/1902.02918
 
     """
+
     def __init__(self, eps, loss_fn=None):
         super().__init__(
             name="fgsm",
@@ -19,9 +20,7 @@ class FGSMAttack(Adversary):
             loss_fn=loss_fn or nn.CrossEntropyLoss()
         )
 
-    def gen(self, model, X, y):
-        model.eval()
-
+    def _gen(self, model, X, y):
         X_adv = X.detach().clone()
         X_adv.requires_grad_(True)
 
