@@ -26,6 +26,8 @@ attacks:
     steps: 10
     norm: Linf
     loss_fn: cross_entropy
+    mean: [ 0.4914, 0.4822, 0.4465 ]
+    std: [ 0.2470, 0.2435, 0.2616 ]
 
 #  - name: stadv
 #    alpha: 0.01
