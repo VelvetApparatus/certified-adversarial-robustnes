@@ -10,5 +10,13 @@ class Adversary:
     def __str__(self):
         return self.__repr__()
 
-    def gen(self, model, X, y):
+    def gen(self, model, x, y):
+        is_train = model.training
+        try:
+            model.eval()
+            return self._gen(model, x, y)
+        finally:
+            model.train(is_train)
+
+    def _gen(self, model, X, y):
         raise NotImplementedError

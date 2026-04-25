@@ -2,12 +2,18 @@ model:
   name: resnet18_10
   weights_path: data/models/resnet/resnet_18_cifar_10/resnet18_cifar10_full.pth
 
-dataset:
-  name: cifar10
-  root_dir: data/dataset/cifar_10
-  train: false
-  download: true
-  batch_size: 128
+datasets:
+  train:
+    name: cifar10
+    root_dir: data/dataset/cifar_10
+    download: true
+    batch_size: 128
+
+  test:
+    name: cifar10
+    root_dir: data/dataset/cifar_10
+    download: true
+    batch_size: 128
 
 attacks:
   - name: fgsm

@@ -43,8 +43,7 @@ class PGD(Adversary):
     def __str__(self):
         return self.__repr__()
 
-    def gen(self, model, X, y):
-        model.eval()
+    def _gen(self, model, X, y):
 
         X_orig = X.detach().clone()
         X_adv = X_orig.clone()
