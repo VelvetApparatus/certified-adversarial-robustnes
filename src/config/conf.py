@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field, replace
 from typing import Optional, Literal, List, Union
+
+import torch
 import yaml
 from torchvision.transforms import Compose
 
@@ -47,6 +49,8 @@ class PGDAttackConfig:
     steps: int
     norm: NormName = "Linf"
     loss_fn: LossName = "cross_entropy"
+    mean: torch.Tensor = None
+    std: torch.Tensor = None
 
 
 @dataclass
@@ -106,6 +110,8 @@ def _parse_attack(cfg: dict) -> AttackConfig:
             steps=cfg["steps"],
             norm=cfg.get("norm", "Linf"),
             loss_fn=cfg.get("loss_fn", "cross_entropy"),
+            mean=cfg.get("mean", None),
+            std=cfg.get("std", None),
         )
 
     if attack_name == "stadv":
