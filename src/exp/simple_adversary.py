@@ -12,7 +12,7 @@ from src.config.conf import load_config
 from src.model.api import get_model
 from src.db.api import get_dataset
 from src.adversaries.api import get_adversaries
-from src.pkg import get_device, get_loss_fn, set_seed
+from src.pkg import get_device, get_loss_fn, set_seed, get_optimizer, get_scheduler
 from src.config.secret import WANDB_TOKEN
 
 arg_parser = argparse.ArgumentParser()
@@ -44,58 +44,6 @@ def finalize_metrics(storage):
         "acc": storage["correct"] / total,
         "total": storage["total"],
     }
-
-
-def get_optimizer(model, cfg):
-    opt_cfg = cfg.training.optimizer
-
-    if opt_cfg.name == "sgd":
-        return torch.optim.SGD(
-            model.parameters(),
-            lr=opt_cfg.lr,
-            momentum=opt_cfg.momentum,
-            weight_decay=opt_cfg.weight_decay,
-            nesterov=opt_cfg.nesterov,
-        )
-
-    if opt_cfg.name == "adam":
-        return torch.optim.Adam(
-            model.parameters(),
-            lr=opt_cfg.lr,
-            weight_decay=opt_cfg.weight_decay,
-        )
-
-    if opt_cfg.name == "adamw":
-        return torch.optim.AdamW(
-            model.parameters(),
-            lr=opt_cfg.lr,
-            weight_decay=opt_cfg.weight_decay,
-        )
-
-    raise ValueError(f"Unsupported optimizer: {opt_cfg.name}")
-
-
-def get_scheduler(optimizer, cfg):
-    scheduler_cfg = cfg.training.scheduler
-
-    if scheduler_cfg.name == "none":
-        return None
-
-    if scheduler_cfg.name == "step_lr":
-        return torch.optim.lr_scheduler.StepLR(
-            optimizer,
-            step_size=scheduler_cfg.step_size,
-            gamma=scheduler_cfg.gamma,
-        )
-
-    if scheduler_cfg.name == "cosine":
-        return torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer,
-            T_max=cfg.training.epochs,
-            eta_min=scheduler_cfg.eta_min,
-        )
-
-    raise ValueError(f"Unsupported scheduler: {scheduler_cfg.name}")
 
 
 def maybe_make_train_subset(train_dataset, cfg):
