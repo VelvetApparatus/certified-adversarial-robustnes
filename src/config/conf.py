@@ -8,6 +8,37 @@ from torchvision.transforms import Compose
 LossName = Literal["cross_entropy"]
 NormName = Literal["Linf", "l2"]
 AttackName = Literal["fgsm", "pgd", "stadv"]
+OptimizerName = Literal["sgd", "adam", "adamw"]
+
+SchedulerName = Literal["none", "step_lr", "cosine"]
+
+DeviceName = Literal["cpu", "cuda", "mps", "auto"]
+
+
+@dataclass
+class OptimizerConfig:
+    name: OptimizerName = "sgd"
+    lr: float = 0.1
+    weight_decay: float = 5e-4
+    momentum: float = 0.9
+    nesterov: bool = False
+
+
+@dataclass
+class SchedulerConfig:
+    name: SchedulerName = "none"
+    step_size: int = 30
+    gamma: float = 0.1
+    eta_min: float = 0.0
+
+
+@dataclass
+class WandbConfig:
+    enabled: bool = False
+    project: str = "certified-robustness"
+    entity: Optional[str] = None
+    run_name: Optional[str] = None
+    tags: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -39,6 +70,8 @@ class FGSMAttackConfig:
     name: Literal["fgsm"]
     epsilon: float
     loss_fn: LossName = "cross_entropy"
+    mean: torch.Tensor = None
+    std: torch.Tensor = None
 
 
 @dataclass
@@ -63,6 +96,20 @@ class StAdvAttackConfig:
     loss_fn: LossName = "cross_entropy"
 
 
+@dataclass
+class TrainingConfig:
+    enabled: bool = True
+    epochs: int = 100
+    seed: int = 42
+    optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
+    scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
+    wandb: WandbConfig = field(default_factory=WandbConfig)
+    save_dir: str = "./checkpoints"
+    save_best: bool = True
+    save_last: bool = True
+    metric_for_best_model: str = "test_accuracy"
+
+
 AttackConfig = Union[FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig]
 
 
@@ -71,6 +118,7 @@ class ExperimentConfig:
     model: ModelConfig
     dataset: Optional[DatasetConfig] = None
     datasets: Optional[DatasetSplitsConfig] = None
+    training: TrainingConfig = field(default_factory=TrainingConfig)
     attacks: List[AttackConfig] = field(default_factory=list)
 
     @property
@@ -100,6 +148,8 @@ def _parse_attack(cfg: dict) -> AttackConfig:
             name="fgsm",
             epsilon=cfg["epsilon"],
             loss_fn=cfg.get("loss_fn", "cross_entropy"),
+            mean=cfg.get("mean", None),
+            std=cfg.get("std", None),
         )
 
     if attack_name == "pgd":
@@ -143,6 +193,60 @@ def _parse_dataset(cfg: dict, *, default_train: Optional[bool] = None) -> Datase
     )
 
 
+def _parse_optimizer(cfg: Optional[dict]) -> OptimizerConfig:
+    cfg = cfg or {}
+
+    return OptimizerConfig(
+        name=cfg.get("name", "sgd"),
+        lr=cfg.get("lr", 0.1),
+        weight_decay=cfg.get("weight_decay", 5e-4),
+        momentum=cfg.get("momentum", 0.9),
+        nesterov=cfg.get("nesterov", False),
+    )
+
+
+def _parse_scheduler(cfg: Optional[dict]) -> SchedulerConfig:
+    cfg = cfg or {}
+
+    return SchedulerConfig(
+        name=cfg.get("name", "none"),
+        step_size=cfg.get("step_size", 30),
+        gamma=cfg.get("gamma", 0.1),
+        eta_min=cfg.get("eta_min", 0.0),
+    )
+
+
+def _parse_wandb(cfg: Optional[dict]) -> WandbConfig:
+    cfg = cfg or {}
+
+    return WandbConfig(
+        enabled=cfg.get("enabled", False),
+        project=cfg.get("project", "certified-robustness"),
+        entity=cfg.get("entity", None),
+        run_name=cfg.get("run_name", None),
+        tags=cfg.get("tags", []),
+    )
+
+
+def _parse_training(cfg: Optional[dict]) -> TrainingConfig:
+    cfg = cfg or {}
+
+    return TrainingConfig(
+        enabled=cfg.get("enabled", True),
+        epochs=cfg.get("epochs", 100),
+        seed=cfg.get("seed", 42),
+
+        optimizer=_parse_optimizer(cfg.get("optimizer")),
+        scheduler=_parse_scheduler(cfg.get("scheduler")),
+        wandb=_parse_wandb(cfg.get("wandb")),
+
+        save_dir=cfg.get("save_dir", "./checkpoints"),
+        save_best=cfg.get("save_best", True),
+        save_last=cfg.get("save_last", True),
+        metric_for_best_model=cfg.get("metric_for_best_model", "test_accuracy"),
+    )
+
+
 def load_config(path: str) -> ExperimentConfig:
     with open(path, "r", encoding="utf-8") as f:
         raw = yaml.safe_load(f)
@@ -181,9 +285,12 @@ def load_config(path: str) -> ExperimentConfig:
     attacks_raw = raw.get("attacks", [])
     attacks_cfg = [_parse_attack(a) for a in attacks_raw]
 
+    training_cfg = _parse_training(raw.get("training"))
+
     return ExperimentConfig(
         model=model_cfg,
         dataset=dataset_cfg,
         datasets=datasets_cfg,
         attacks=attacks_cfg,
+        training=training_cfg,
     )
