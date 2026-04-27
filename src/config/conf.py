@@ -119,6 +119,7 @@ class ExperimentConfig:
     dataset: Optional[DatasetConfig] = None
     datasets: Optional[DatasetSplitsConfig] = None
     training: TrainingConfig = field(default_factory=TrainingConfig)
+    evaluation_root: Optional[str] = None
     attacks: List[AttackConfig] = field(default_factory=list)
 
     @property
@@ -286,6 +287,7 @@ def load_config(path: str) -> ExperimentConfig:
     attacks_cfg = [_parse_attack(a) for a in attacks_raw]
 
     training_cfg = _parse_training(raw.get("training"))
+    evaluation_root = raw.get("evaluation_root")
 
     return ExperimentConfig(
         model=model_cfg,
@@ -293,4 +295,5 @@ def load_config(path: str) -> ExperimentConfig:
         datasets=datasets_cfg,
         attacks=attacks_cfg,
         training=training_cfg,
+        evaluation_root=evaluation_root,
     )
