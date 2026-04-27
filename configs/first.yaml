@@ -19,6 +19,8 @@ attacks:
   - name: fgsm
     epsilon: 0.03137
     loss_fn: cross_entropy
+    mean: [ 0.4914, 0.4822, 0.4465 ]
+    std: [ 0.2023, 0.1994, 0.2010 ]
 
   - name: pgd
     epsilon: 0.03137
@@ -27,11 +29,38 @@ attacks:
     norm: Linf
     loss_fn: cross_entropy
     mean: [ 0.4914, 0.4822, 0.4465 ]
-    std: [ 0.2470, 0.2435, 0.2616 ]
+    std: [ 0.2023, 0.1994, 0.2010 ]
 
-#  - name: stadv
-#    alpha: 0.01
-#    steps: 100
-#    tau: 0.05
-#    targeted: false
-#    loss_fn: cross_entropy
+
+training:
+  enabled: true
+  epochs: 100
+  seed: 42
+  device: auto
+
+  optimizer:
+    name: sgd
+    lr: 0.1
+    weight_decay: 0.0005
+    momentum: 0.9
+    nesterov: true
+
+  scheduler:
+    name: cosine
+    eta_min: 0.0
+
+  wandb:
+    enabled: true
+    project: certified-robustness
+    run_name: resnet18-cifar10-baseline
+    tags:
+      - cifar10
+      - resnet18
+      - baseline
+
+  save_dir: ./checkpoints
+  save_best: true
+  save_last: true
+  metric_for_best_model: test_accuracy
+
+
