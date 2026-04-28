@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from src.adversaries.api import get_adversaries
-from src.config.conf import load_config
+from src.config.conf import load_experiment_config, load_evaluate_config, EvaluationExperimentConfig
 from src.db.api import get_dataset
 from src.model.api import get_model
 from src.pkg import (
@@ -26,8 +26,12 @@ arg_parser.add_argument("--config", default="config/config.yaml")
 args = arg_parser.parse_args()
 
 
-def save_evaluation_results(results, cfg, config_path: str):
-    dataset_name = cfg.dataset.name if cfg.dataset is not None else cfg.test_dataset.name
+def save_evaluation_results(
+        results,
+        cfg: EvaluationExperimentConfig,
+        config_path: str,
+):
+    dataset_name = cfg.test_dataset.name
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
 
@@ -111,9 +115,7 @@ def evaluate_adversarial(model, test_loader, adversary, criterion, device):
 
 
 def main():
-    cfg = load_config(args.config)
-
-    set_seed(cfg.training.seed)
+    cfg = load_evaluate_config(args.config)
 
     device = get_device()
 

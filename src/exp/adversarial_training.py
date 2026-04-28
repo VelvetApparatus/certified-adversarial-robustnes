@@ -8,62 +8,19 @@ from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
 import wandb
 
-from src.config.conf import load_config
+from src.config.conf import load_experiment_config
 from src.model.api import get_model
 from src.db.api import get_dataset
 from src.adversaries.api import get_adversaries
-from src.pkg import get_device, get_loss_fn, set_seed, get_optimizer, get_scheduler
+from src.pkg import (
+    get_device, get_loss_fn, set_seed, get_optimizer, get_scheduler,
+    init_metrics, update_metrics, finalize_metrics,
+)
 from src.config.secret import WANDB_TOKEN
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("--config", default="config/config.yaml")
 args = arg_parser.parse_args()
-
-
-def init_metrics():
-    return {
-        "loss": 0.0,
-        "correct": 0,
-        "total": 0,
-    }
-
-
-def update_metrics(storage, logits, y, loss, batch_size):
-    preds = logits.argmax(dim=1)
-
-    storage["loss"] += loss.item() * batch_size
-    storage["correct"] += (preds == y).sum().item()
-    storage["total"] += batch_size
-
-
-def finalize_metrics(storage):
-    total = max(storage["total"], 1)
-
-    return {
-        "loss": storage["loss"] / total,
-        "acc": storage["correct"] / total,
-        "total": storage["total"],
-    }
-
-
-def maybe_make_train_subset(train_dataset, cfg):
-    subset_fraction = getattr(cfg.training, "train_subset_fraction", None)
-
-    if subset_fraction is None:
-        return train_dataset
-
-    if not 0 < subset_fraction <= 1:
-        raise ValueError("training.train_subset_fraction must be in range (0, 1]")
-
-    batch_size = cfg.train_dataset.batch_size
-
-    subset_size = int(len(train_dataset) * subset_fraction)
-    subset_size = (subset_size // batch_size) * batch_size
-
-    if subset_size <= 0:
-        raise ValueError("Subset size became zero. Increase train_subset_fraction.")
-
-    return Subset(train_dataset, range(subset_size))
 
 
 def evaluate_clean(model, test_loader, criterion, device):
@@ -236,7 +193,7 @@ def init_wandb_if_needed(cfg, train_adversary):
 
 
 def main():
-    cfg = load_config(args.config)
+    cfg = load_experiment_config(args.config)
 
     set_seed(cfg.training.seed)
 
@@ -250,8 +207,6 @@ def main():
 
     train_dataset = get_dataset(train_dataset_cfg)
     test_dataset = get_dataset(test_dataset_cfg)
-
-    train_dataset = maybe_make_train_subset(train_dataset, cfg)
 
     train_loader = DataLoader(
         train_dataset,
@@ -317,8 +272,7 @@ def main():
             device=device,
         )
 
-        if scheduler is not None:
-            scheduler.step()
+        scheduler.step()
 
         current_lr = optimizer.param_groups[0]["lr"]
 
