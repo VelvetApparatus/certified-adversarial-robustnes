@@ -1,0 +1,18 @@
+model:
+  name: resnet18_10
+  weights_path: data/models/resnet/resnet_18_cifar_10/resnet18_cifar10_full.pth
+
+dataset:
+  name: cifar10
+  root_dir: data/dataset/cifar_10
+  download: true
+  batch_size: 128
+
+certification:
+  output_dir: data/out/certification/resnet18-cifar-10-baseline
+  sigma: 0.5
+  n0: 100
+  n: 100000
+  alpha: 0.001
+
+

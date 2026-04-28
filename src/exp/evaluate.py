@@ -9,11 +9,10 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from src.adversaries.api import get_adversaries
-from src.config.conf import load_experiment_config, load_evaluate_config, EvaluationExperimentConfig
+from src.config.conf import load_evaluate_config, EvaluationExperimentConfig
 from src.db.api import get_dataset
 from src.model.api import get_model
 from src.pkg import (
-    set_seed,
     get_device,
     get_loss_fn,
     init_metrics,
