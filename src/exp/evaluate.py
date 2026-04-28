@@ -35,7 +35,7 @@ def save_evaluation_results(
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
 
-    output_root = getattr(cfg.evaluation_root, "output_dir", "./outputs/evaluations")
+    output_root = cfg.evaluation_root
 
     run_name = f"{cfg.model.name}_{dataset_name}_{timestamp}"
     run_dir = os.path.join(output_root, run_name)
