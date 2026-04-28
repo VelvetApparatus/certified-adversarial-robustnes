@@ -122,6 +122,23 @@ class EvaluationExperimentConfig:
 
 
 @dataclass
+class CertificationParams:
+    sigma: float
+    output_dir: str
+    n0: int = 100
+    n: int = 100000
+    alpha: float = 0.001
+    seed: int = 42
+
+
+@dataclass
+class CertificationConfig:
+    model: ModelConfig
+    dataset: DatasetConfig
+    certification: CertificationParams
+
+
+@dataclass
 class ExperimentConfig:
     model: ModelConfig
     dataset: Optional[DatasetConfig] = None
@@ -253,6 +270,43 @@ def _parse_training(cfg: Optional[dict]) -> TrainingConfig:
         save_best=cfg.get("save_best", True),
         save_last=cfg.get("save_last", True),
         metric_for_best_model=cfg.get("metric_for_best_model", "test_accuracy"),
+    )
+
+
+def _parse_certification_params(cfg: dict) -> CertificationParams:
+    return CertificationParams(
+        sigma=cfg["sigma"],
+        output_dir=cfg["output_dir"],
+        n0=cfg["n0"],
+        n=cfg["n"],
+        alpha=cfg["alpha"],
+    )
+
+
+def load_certification_config(path: str) -> CertificationConfig:
+    with open(path, "r") as f:
+        raw = yaml.safe_load(f)
+
+    if raw is None:
+        raise ValueError("YAML config is empty")
+
+    if "certification" not in raw:
+        raise ValueError("Config must contain 'certification'")
+    if "model" not in raw:
+        raise ValueError("Config must contain 'model'")
+    if "dataset" not in raw:
+        raise ValueError("Config must contain 'dataset'")
+
+    model_cfg = ModelConfig(
+        name=raw["model"]["name"],
+        weights_path=raw["model"].get("weights_path"),
+    )
+    dataset_cfg = _parse_dataset(raw["dataset"])
+    certification_params = _parse_certification_params(raw["certification"])
+    return CertificationConfig(
+        model=model_cfg,
+        dataset=dataset_cfg,
+        certification=certification_params,
     )
 
 
