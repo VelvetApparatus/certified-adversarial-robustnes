@@ -44,6 +44,7 @@ class WandbConfig:
 @dataclass
 class ModelConfig:
     name: str
+    pretrained: bool
     weights_path: Optional[str] = None
     loss_fn: LossName = "cross_entropy"
 
@@ -300,6 +301,7 @@ def load_certification_config(path: str) -> CertificationConfig:
     model_cfg = ModelConfig(
         name=raw["model"]["name"],
         weights_path=raw["model"].get("weights_path"),
+        pretrained=raw["model"].get("pretrained"),
     )
     dataset_cfg = _parse_dataset(raw["dataset"])
     certification_params = _parse_certification_params(raw["certification"])
@@ -357,6 +359,7 @@ def load_experiment_config(path: str) -> ExperimentConfig:
     model_cfg = ModelConfig(
         name=raw["model"]["name"],
         weights_path=raw["model"].get("weights_path"),
+        pretrained=raw["model"].get("pretrained"),
     )
 
     dataset_cfg = None
