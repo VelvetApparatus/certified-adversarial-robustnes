@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: data/models/resnet/resnet_18_cifar_10/resnet18_cifar10_full.pth
+  pretrained: false
 
 datasets:
   train:
