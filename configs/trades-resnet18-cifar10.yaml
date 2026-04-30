@@ -1,0 +1,46 @@
+trades_params:
+  epochs: 300
+  lr: 0.1
+  momentum: 0.9
+  epsilon: 8.0 / 255.0
+  num_steps: 10
+  step_size: 2.0 / 255.0
+  sigma: 0.25
+  beta: 16.0
+  seed: 42
+  output_dir: "output/trades-resnet18-cifar10"
+  certificate_every_epoch: 10
+  certificate_epoch_threshold: 200
+  #  checkpoint: "checkpoints/macer-resnet18-cifar10.pth"
+  cert_start: 100
+  cert_num: 1000
+
+
+model:
+  name: resnet18
+  pretrained: false
+  num_classes: 10
+
+train_dataset:
+  name: cifar10
+  root_dir: data/dataset/cifar_10
+  download: true
+  batch_size: 128
+
+test_dataset:
+  name: cifar10
+  root_dir: data/dataset/cifar_10
+  download: true
+  batch_size: 128
+
+optimizer:
+  name: sgd
+  lr: 0.1
+  weight_decay: 0.0005
+  momentum: 0.9
+  nesterov: false
+
+scheduler:
+  name: multistep
+  milestones: [ 100, 200 ]
+  gamma: 0.1
