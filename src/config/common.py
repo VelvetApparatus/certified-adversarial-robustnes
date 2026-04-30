@@ -113,3 +113,50 @@ class TrainingConfig:
     save_best: bool = True
     save_last: bool = True
     metric_for_best_model: str = "test_accuracy"
+
+
+@dataclass
+class CertificationParams:
+    sigma: float
+    output_dir: str
+    n0: int = 100
+    n: int = 100000
+    alpha: float = 0.001
+    seed: int = 42
+
+
+@dataclass
+class MacerParams:
+    output_dir: str
+    seed: int
+    gauss_samples: int
+    sigma: float
+    beta: float
+    num_classes: int
+    gamma: float
+    lbd: float
+    epochs: int
+    certificate_every_epoch: int
+    certificate_epoch_threshold: int
+    checkpoint: str
+    cert_start: int
+    cert_num: int
+
+
+@dataclass
+class TradesParams:
+    epochs: int
+    lr: float
+    momentum: float
+    epsilon: float
+    num_steps: int
+    step_size: int
+    sigma: float
+    beta: float
+    seed: int
+    output_dir: str
+    certificate_every_epoch: int
+    certificate_epoch_threshold: int
+    checkpoint: str
+    cert_start: int
+    cert_num: int

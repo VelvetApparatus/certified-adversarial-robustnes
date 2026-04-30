@@ -9,23 +9,7 @@ from src.config._parsers import (
 from src.config.common import ModelConfig, DatasetConfig, SchedulerConfig, OptimizerConfig
 
 
-@dataclass
-class TradesParams:
-    epochs: int
-    lr: float
-    momentum: float
-    epsilon: float
-    num_steps: int
-    step_size: int
-    sigma: float
-    beta: float
-    seed: int
-    output_dir: str
-    certificate_every_epoch: int
-    certificate_epoch_threshold: int
-    checkpoint: str
-    cert_start: int
-    cert_num: int
+
 
 
 
