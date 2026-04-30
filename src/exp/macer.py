@@ -91,7 +91,8 @@ def train_epoch(
 
         # Calculate distance between two top predictions
         # Ф^-1(p_B) - Ф^-1(p_A)
-        robustness_loss = m.icdf(out1) - m.icdf(out0)
+        margin = m.icdf(out0) - m.icdf(out1)
+        robustness_loss = torch.clamp(gamma - margin, min=0.0).sum() * sigma / 2
 
         # Hinge filter
         hinge_filter = (~torch.isnan(robustness_loss) &
@@ -146,7 +147,7 @@ def main():
     os.makedirs(checkpoints_dir, exist_ok=True)
     matdir = os.path.join(output_dir, "mat")
     os.makedirs(matdir, exist_ok=True)
-    checkpoint = config["checkpoint"]
+    checkpoint = config.params.checkpoint
 
     # set seed
     set_seed(config.params.seed)
@@ -155,7 +156,7 @@ def main():
     device = get_device()
 
     # model
-    model = get_model(config["model"], device)
+    model = get_model(config.model, device)
     model.to(device)
 
     # optimizer
@@ -219,7 +220,6 @@ def main():
             print('===test(epoch={})==='.format(epoch))
             t1 = time.time()
             model.eval()
-            # todo: config
             certify(model, device, test_dataset, num_classes,
                     mode='soft', start_img=config.params.cert_start, num_img=config.params.cert_num,
                     sigma=sigma, beta=beta,
