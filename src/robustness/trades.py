@@ -17,18 +17,17 @@ def l2_norm(x):
 def trades_loss(model,
                 x_natural,
                 y,
-                optimizer,
                 step_size=0.003,
                 epsilon=0.031,
                 perturb_steps=10,
                 beta=1.0,
                 distance='l_inf'):
     # define KL-loss
-    criterion_kl = nn.KLDivLoss(reduction="sum")
+    criterion_kl = torch.nn.KLDivLoss(reduction="sum")
     model.eval()
     batch_size = len(x_natural)
     # generate adversarial example
-    x_adv = x_natural.detach() + 0.001 * torch.randn(x_natural.shape).detach()
+    x_adv = x_natural.detach() + 0.001 * torch.randn_like(x_natural).detach()
     if distance == 'l_inf':
         for _ in range(perturb_steps):
             x_adv.requires_grad_()
@@ -38,7 +37,7 @@ def trades_loss(model,
             grad = torch.autograd.grad(loss_kl, [x_adv])[0]
             x_adv = x_adv.detach() + step_size * torch.sign(grad.detach())
             x_adv = torch.min(torch.max(x_adv, x_natural - epsilon), x_natural + epsilon)
-            x_adv = torch.clamp(x_adv, 0.0, 1.0)
+            x_adv = clamp_normalized_cifar10(x_adv)
     elif distance == 'l_2':
         delta = 0.001 * torch.randn(x_natural.shape).detach()
         delta = Variable(delta.data, requires_grad=True)
@@ -72,13 +71,35 @@ def trades_loss(model,
         x_adv = torch.clamp(x_adv, 0.0, 1.0)
     model.train()
 
-    x_adv = Variable(torch.clamp(x_adv, 0.0, 1.0), requires_grad=False)
-    # zero gradient
-    optimizer.zero_grad()
-    # calculate robust loss
+    x_adv = clamp_normalized_cifar10(x_adv).detach()
+
     logits = model(x_natural)
     loss_natural = F.cross_entropy(logits, y)
-    loss_robust = (1.0 / batch_size) * criterion_kl(F.log_softmax(model(x_adv), dim=1),
-                                                    F.softmax(model(x_natural), dim=1))
+
+    loss_robust = criterion_kl(
+        F.log_softmax(model(x_adv), dim=1),
+        F.softmax(logits.detach(), dim=1)
+    ) / batch_size
+
     loss = loss_natural + beta * loss_robust
     return loss
+
+
+# todo make normal
+def clamp_normalized_cifar10(x):
+    mean = torch.tensor(
+        [0.4914, 0.4822, 0.4465],
+        device=x.device,
+        dtype=x.dtype,
+    ).view(1, 3, 1, 1)
+
+    std = torch.tensor(
+        [0.2470, 0.2435, 0.2616],
+        device=x.device,
+        dtype=x.dtype,
+    ).view(1, 3, 1, 1)
+
+    lower = (0.0 - mean) / std
+    upper = (1.0 - mean) / std
+
+    return torch.max(torch.min(x, upper), lower)
