@@ -1,12 +1,12 @@
 import torch
-from src.config._parsers import AdversarialTrainingConfig
+from src.config.common import SchedulerConfig
 
 
 def get_scheduler(
         optimizer,
-        cfg: AdversarialTrainingConfig,
+        cfg: SchedulerConfig,
 ):
-    scheduler_cfg = cfg.training.scheduler
+    scheduler_cfg = cfg
 
     if scheduler_cfg.name == "none":
         return None
@@ -18,6 +18,12 @@ def get_scheduler(
             gamma=scheduler_cfg.gamma,
         )
 
+    if scheduler_cfg.name == "multistep":
+        return torch.optim.lr_scheduler.MultiStepLR(
+            optimizer,
+            milestones=scheduler_cfg.milestones,
+            gamma=scheduler_cfg.gamma,
+        )
     if scheduler_cfg.name == "cosine":
         return torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer,

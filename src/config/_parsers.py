@@ -86,6 +86,7 @@ def _parse_scheduler(cfg: Optional[dict]) -> SchedulerConfig:
         step_size=cfg.get("step_size", 30),
         gamma=cfg.get("gamma", 0.1),
         eta_min=cfg.get("eta_min", 0.0),
+        milestones=cfg.get("milestones", [10, 20]),
     )
 
 
