@@ -9,6 +9,7 @@ from src.config.certify import CertificationConfig, CertificationParams
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
     OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig
 from src.config.macer import MacerParams
+from src.config.trades import TradesParams
 
 
 def _parse_attack(cfg: dict) -> AttackConfig:
@@ -128,6 +129,7 @@ def _parse_model(cfg: Optional[dict]) -> ModelConfig:
         pretrained=cfg.get("pretrained", True),
         weights_path=cfg.get("weights_path", None),
         loss_fn=cfg.get("loss_fn", "cross_entropy"),
+        num_classes=cfg.get("num_classes", 100),
     )
 
 
@@ -143,6 +145,27 @@ def _parse_macer_params(cfg: Optional[dict]) -> MacerParams:
         gamma=cfg.get("gamma", 0.1),
         lbd=cfg.get("lbd", 0.01),
         epochs=cfg.get("epochs", 100),
+        certificate_every_epoch=cfg.get("certificate_every_epoch", False),
+        certificate_epoch_threshold=cfg.get("certificate_epoch_threshold", 200),
+        checkpoint=cfg.get("checkpoint", None),
+        cert_start=cfg.get("cert_start", 0),
+        cert_num=cfg.get("cert_num", 100),
+    )
+
+
+def _parse_trades_params(cfg: Optional[dict]) -> TradesParams:
+    cfg = cfg or {}
+    return TradesParams(
+        epochs=cfg.get("epochs", 100),
+        lr=cfg.get("lr", 0.1),
+        momentum=cfg.get("momentum", 0.9),
+        epsilon=cfg.get("epsilon", 0.01),
+        num_steps=cfg.get("num_steps", 100),
+        step_size=cfg.get("step_size", 30),
+        beta=cfg.get("beta", 0.01),
+        sigma=cfg.get("sigma", 0.01),
+        seed=cfg.get("seed", 42),
+        output_dir=cfg.get("output_dir", None),
         certificate_every_epoch=cfg.get("certificate_every_epoch", False),
         certificate_epoch_threshold=cfg.get("certificate_epoch_threshold", 200),
         checkpoint=cfg.get("checkpoint", None),

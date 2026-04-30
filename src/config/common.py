@@ -47,6 +47,7 @@ class ModelConfig:
     pretrained: bool
     weights_path: Optional[str] = None
     loss_fn: LossName = "cross_entropy"
+    num_classes: Optional[int] = None
 
 
 @dataclass
