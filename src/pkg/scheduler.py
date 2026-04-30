@@ -1,10 +1,10 @@
 import torch
-from src.config.conf import ExperimentConfig
+from src.config._parsers import AdversarialTrainingConfig
 
 
 def get_scheduler(
         optimizer,
-        cfg: ExperimentConfig,
+        cfg: AdversarialTrainingConfig,
 ):
     scheduler_cfg = cfg.training.scheduler
 

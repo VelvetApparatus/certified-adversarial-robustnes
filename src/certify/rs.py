@@ -1,121 +1,115 @@
-import torch
-from scipy.stats import norm, binomtest
+'''
+Randomized Smoothing Certification: Hard-RS and Soft-RS
+Soft-RS uses empirical Bernstein bound
+
+MACER: Attack-free and Scalable Robust Training via Maximizing Certified Radius
+ICLR 2020 Submission
+
+References:
+[1] J. Cohen, E. Rosenfeld and Z. Kolter.
+Certified Adversarial Robustness via Randomized Smoothing. In ICML, 2019.
+
+Acknowledgements:
+[1] https://github.com/locuslab/smoothing/blob/master/code/certify.py
+'''
+
 import numpy as np
-from math import ceil
-from statsmodels.stats.proportion import proportion_confint
+import scipy.io as sio
+
+from src.robustness.macer import Smooth
 
 
-class Smooth:
-    """A smoothed classifier g """
+def certify(model, device, dataset, num_classes, matfile=None,
+            mode='hard', start_img=0, num_img=500, skip=1, sigma=0.25, N0=100, N=100000,
+            alpha=0.001, batch=1000, verbose=False,
+            grid=(0.25, 0.50, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25), beta=1.0):
+    print('===certify(N={}, sigma={}, mode={})==='.format(N, sigma, mode))
 
-    # to abstain, Smooth returns this int
-    ABSTAIN = -1
+    model.eval()
+    smoothed_net = Smooth(model, num_classes,
+                          sigma, device, mode, beta)
 
-    def __init__(
-            self,
-            base_classifier: torch.nn.Module,
-            num_classes: int,
-            sigma: float,
-            device: torch.device,
-    ):
-        """
-        :param base_classifier: maps from [batch x channel x height x width] to [batch x num_classes]
-        :param num_classes:
-        :param sigma: the noise level hyperparameter
-        """
-        self.base_classifier = base_classifier
-        self.num_classes = num_classes
-        self.sigma = sigma
-        self.device = device
+    radius_hard = np.zeros((num_img,), dtype=np.float)
+    radius_soft = np.zeros((num_img,), dtype=np.float)
+    num_grid = len(grid)
+    cnt_grid_hard = np.zeros((num_grid + 1,), dtype=np.int)
+    cnt_grid_soft = np.zeros((num_grid + 1,), dtype=np.int)
+    s_hard = 0.0
+    s_soft = 0.0
 
-    def certify(self, x: torch.Tensor, n0: int, n: int, alpha: float, batch_size: int) -> (int, float):
-        """
-        Monte Carlo algorithm for certifying that g's prediction around x is constant within some L2 radius.
-        With probability at least 1 - alpha, the class returned by this method will equal g(x), and g's prediction will
-        robust within a L2 ball of radius R around x.
+    for i in range(num_img):
+        img, target = dataset[start_img + i * skip]
+        img = img.to(device)
 
-        :param x: the input [channel x height x width]
-        :param n0: the number of Monte Carlo samples to use for selection
-        :param n: the number of Monte Carlo samples to use for estimation
-        :param alpha: the failure probability
-        :param batch_size: batch size to use when evaluating the base classifier
-        :return: (predicted class, certified radius)
-                 in the case of abstention, the class will be ABSTAIN and the radius 0.
-        """
-
-        self.base_classifier.eval()
-        # draw samples of f(x+ epsilon)
-        counts_selection = self._sample_noise(x, n0, batch_size)
-        # use these samples to take a guess at the top class
-        cAHat = counts_selection.argmax().item()
-        # draw more samples of f(x + epsilon)
-        counts_estimation = self._sample_noise(x, n, batch_size)
-        # use these samples to estimate a lower bound on pA
-        nA = counts_estimation[cAHat].item()
-        pABar = self._lower_confidence_bound(nA, n, alpha)
-        if pABar < 0.5:
-            return Smooth.ABSTAIN, 0.0
+        if mode == 'both':
+            p_hard, r_hard, p_soft, r_soft = smoothed_net.certify(
+                img, N0, N, alpha, batch)
+            correct_hard = int(p_hard == target)
+            correct_soft = int(p_soft == target)
+            if verbose:
+                if correct_hard == 1:
+                    print('Hard Correct: 1. Radius: {}.'.format(r_hard))
+                else:
+                    print('Hard Correct: 0.')
+                if correct_soft == 1:
+                    print('Soft Correct: 1. Radius: {}.'.format(r_soft))
+                else:
+                    print('Soft Correct: 0.')
+            radius_hard[i] = r_hard if correct_hard == 1 else -1
+            radius_soft[i] = r_soft if correct_soft == 1 else -1
+            if correct_hard == 1:
+                cnt_grid_hard[0] += 1
+                s_hard += r_hard
+                for j in range(num_grid):
+                    if r_hard >= grid[j]:
+                        cnt_grid_hard[j + 1] += 1
+            if correct_soft == 1:
+                cnt_grid_soft[0] += 1
+                s_soft += r_soft
+                for j in range(num_grid):
+                    if r_soft >= grid[j]:
+                        cnt_grid_soft[j + 1] += 1
         else:
-            radius = self.sigma * norm.ppf(pABar)
-            return cAHat, radius
+            prediction, radius = smoothed_net.certify(img, N0, N, alpha, batch)
+            correct = int(prediction == target)
+            if verbose:
+                if correct == 1:
+                    print('Correct: 1. Radius: {}.'.format(radius))
+                else:
+                    print('Correct: 0.')
+            radius_hard[i] = radius if correct == 1 else -1
+            if correct == 1:
+                cnt_grid_hard[0] += 1
+                s_hard += radius
+                for j in range(num_grid):
+                    if radius >= grid[j]:
+                        cnt_grid_hard[j + 1] += 1
 
-    def predict(self, x: torch.Tensor, n: int, alpha: float, batch_size: int) -> int:
-        """ Monte Carlo algorithm for evaluating the prediction of g at x.  With probability at least 1 - alpha, the
-        class returned by this method will equal g(x).
-
-        This function uses the hypothesis test described in https://arxiv.org/abs/1610.03944
-        for identifying the top category of a multinomial distribution.
-
-        :param x: the input [channel x height x width]
-        :param n: the number of Monte Carlo samples to use
-        :param alpha: the failure probability
-        :param batch_size: batch size to use when evaluating the base classifier
-        :return: the predicted class, or ABSTAIN
-        """
-        self.base_classifier.eval()
-        counts = self._sample_noise(x, n, batch_size)
-        top2 = counts.argsort()[::-1][:2]
-        count1 = counts[top2[0]]
-        count2 = counts[top2[1]]
-        if binomtest(count1, count1 + count2, p=0.5).pvalue > alpha:
-            return Smooth.ABSTAIN
-        else:
-            return top2[0]
-
-    def _sample_noise(self, x: torch.Tensor, num: int, batch_size) -> np.ndarray:
-        """ Sample the base classifier's prediction under noisy corruptions of the input x.
-
-        :param x: the input [channel x width x height]
-        :param num: number of samples to collect
-        :param batch_size:
-        :return: an ndarray[int] of length num_classes containing the per-class counts
-        """
-        with torch.no_grad():
-            counts = np.zeros(self.num_classes, dtype=int)
-            for _ in range(ceil(num / batch_size)):
-                this_batch_size = min(batch_size, num)
-                num -= this_batch_size
-
-                batch = x.repeat((this_batch_size, 1, 1, 1))
-                noise = torch.randn_like(batch, device=self.device) * self.sigma
-                predictions = self.base_classifier(batch + noise).argmax(1)
-                counts += self._count_arr(predictions.cpu().numpy(), self.num_classes)
-            return counts
-
-    def _count_arr(self, arr: np.ndarray, length: int) -> np.ndarray:
-        counts = np.zeros(length, dtype=int)
-        for idx in arr:
-            counts[idx] += 1
-        return counts
-
-    def _lower_confidence_bound(self, NA: int, N: int, alpha: float) -> float:
-        """ Returns a (1 - alpha) lower confidence bound on a bernoulli proportion.
-
-        This function uses the Clopper-Pearson method.
-
-        :param NA: the number of "successes"
-        :param N: the number of total draws
-        :param alpha: the confidence level
-        :return: a lower bound on the binomial proportion which holds true w.p at least (1 - alpha) over the samples
-        """
-        return proportion_confint(NA, N, alpha=2 * alpha, method="beta")[0]
+    print('===Certify Summary===')
+    print('Total Image Number: {}'.format(num_img))
+    if mode == 'both':
+        print('===Hard certify===')
+        print('Radius: 0.0  Number: {}  Acc: {}'.format(
+            cnt_grid_hard[0], cnt_grid_hard[0] / num_img * 100))
+        for j in range(num_grid):
+            print('Radius: {}  Number: {}  Acc: {}'.format(
+                grid[j], cnt_grid_hard[j + 1], cnt_grid_hard[j + 1] / num_img * 100))
+        print('ACR: {}'.format(s_hard / num_img))
+        print('===Soft certify===')
+        print('Radius: 0.0  Number: {}  Acc: {}'.format(
+            cnt_grid_soft[0], cnt_grid_soft[0] / num_img * 100))
+        for j in range(num_grid):
+            print('Radius: {}  Number: {}  Acc: {}'.format(
+                grid[j], cnt_grid_soft[j + 1], cnt_grid_soft[j + 1] / num_img * 100))
+        print('ACR: {}'.format(s_soft / num_img))
+        if matfile is not None:
+            sio.savemat(matfile, {'hard': radius_hard, 'soft': radius_soft})
+    else:
+        print('Radius: 0.0  Number: {}  Acc: {}'.format(
+            cnt_grid_hard[0], cnt_grid_hard[0] / num_img * 100))
+        for j in range(num_grid):
+            print('Radius: {}  Number: {}  Acc: {}'.format(
+                grid[j], cnt_grid_hard[j + 1], cnt_grid_hard[j + 1] / num_img * 100))
+        print('ACR: {}'.format(s_hard / num_img))
+        if matfile is not None:
+            sio.savemat(matfile, {mode: radius_hard})

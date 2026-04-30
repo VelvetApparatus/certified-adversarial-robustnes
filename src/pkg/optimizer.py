@@ -1,10 +1,10 @@
 import torch
-from src.config.conf import ExperimentConfig
+from src.config._parsers import AdversarialTrainingConfig
 
 
 def get_optimizer(
         model,
-        cfg: ExperimentConfig,
+        cfg: AdversarialTrainingConfig,
 ):
     opt_cfg = cfg.training.optimizer
 

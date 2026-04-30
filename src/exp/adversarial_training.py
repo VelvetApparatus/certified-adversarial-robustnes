@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
 import wandb
 
-from src.config.conf import load_experiment_config
+from src.config.adversarial_training import load_adversarial_training_config
 from src.model.api import get_model
 from src.db.api import get_dataset
 from src.adversaries.api import get_adversaries
@@ -193,7 +193,7 @@ def init_wandb_if_needed(cfg, train_adversary):
 
 
 def main():
-    cfg = load_experiment_config(args.config)
+    cfg = load_adversarial_training_config(args.config)
 
     set_seed(cfg.training.seed)
 

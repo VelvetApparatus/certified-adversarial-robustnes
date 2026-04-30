@@ -10,8 +10,8 @@ import torch
 from src.pkg import set_seed, get_device
 from src.model.api import get_model
 from src.db.api import get_dataset
-from src.config.conf import load_certification_config
-from src.certify.rs import Smooth
+from src.config.certify import load_certification_config
+from src.robustness.randomized_smoothing import Smooth
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("--config", type=str, required=True)

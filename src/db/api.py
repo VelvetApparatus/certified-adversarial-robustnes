@@ -1,5 +1,5 @@
 from torchvision import datasets, transforms
-from src.config.conf import DatasetConfig
+from src.config._parsers import DatasetConfig
 from torch.utils.data import Dataset
 
 

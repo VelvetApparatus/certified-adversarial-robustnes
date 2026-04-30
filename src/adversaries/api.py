@@ -1,6 +1,6 @@
 from typing import List
 
-from src.config.conf import AttackConfig, StAdvAttackConfig, FGSMAttackConfig, PGDAttackConfig
+from src.config._parsers import AttackConfig, StAdvAttackConfig, FGSMAttackConfig, PGDAttackConfig
 from src.adversaries.fgsm import FGSMAttack
 from src.adversaries.pgd import PGD
 from src.adversaries.stadv import StAdv
