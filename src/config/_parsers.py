@@ -1,15 +1,8 @@
-from dataclasses import dataclass, field, replace
-from typing import Optional, Literal, List, Union
+from typing import Optional
 
-import torch
-import yaml
-from torchvision.transforms import Compose
-
-from src.config.certify import CertificationConfig, CertificationParams
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
-    OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig
-from src.config.macer import MacerParams
-from src.config.trades import TradesParams
+    OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, CertificationParams, TradesParams, \
+    MacerParams
 
 
 def _parse_attack(cfg: dict) -> AttackConfig:

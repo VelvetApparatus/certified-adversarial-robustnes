@@ -3,17 +3,7 @@ from dataclasses import dataclass
 import yaml
 
 from src.config._parsers import _parse_dataset, _parse_certification_params
-from src.config.common import ModelConfig, DatasetConfig
-
-
-@dataclass
-class CertificationParams:
-    sigma: float
-    output_dir: str
-    n0: int = 100
-    n: int = 100000
-    alpha: float = 0.001
-    seed: int = 42
+from src.config.common import ModelConfig, DatasetConfig, CertificationParams
 
 
 @dataclass

@@ -3,26 +3,7 @@ from dataclasses import dataclass
 import yaml
 
 from src.config._parsers import _parse_model, _parse_dataset, _parse_optimizer, _parse_scheduler, _parse_macer_params
-from src.config.common import DatasetConfig, SchedulerConfig, OptimizerConfig, ModelConfig
-
-
-@dataclass
-class MacerParams:
-    output_dir: str
-    seed: int
-    gauss_samples: int
-    sigma: float
-    beta: float
-    num_classes: int
-    gamma: float
-    lbd: float
-    epochs: int
-    certificate_every_epoch: int
-    certificate_epoch_threshold: int
-    checkpoint: str
-    cert_start: int
-    cert_num: int
-
+from src.config.common import DatasetConfig, SchedulerConfig, OptimizerConfig, ModelConfig, MacerParams
 
 
 @dataclass
