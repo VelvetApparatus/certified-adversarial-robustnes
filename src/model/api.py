@@ -1,4 +1,4 @@
-from src.config.conf import ModelConfig
+from src.config._parsers import ModelConfig
 from .resnet import build_resnet_18_10
 
 def get_model(cfg: ModelConfig, device: str):
