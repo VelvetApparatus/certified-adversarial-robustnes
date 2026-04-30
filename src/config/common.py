@@ -29,6 +29,7 @@ class SchedulerConfig:
     step_size: int = 30
     gamma: float = 0.1
     eta_min: float = 0.0
+    milestones: List[int] = field(default_factory=list)
 
 
 @dataclass

@@ -1,12 +1,12 @@
 import torch
-from src.config._parsers import AdversarialTrainingConfig
+from src.config.common import OptimizerConfig
 
 
 def get_optimizer(
         model,
-        cfg: AdversarialTrainingConfig,
+        cfg: OptimizerConfig,
 ):
-    opt_cfg = cfg.training.optimizer
+    opt_cfg = cfg
 
     if opt_cfg.name == "sgd":
         return torch.optim.SGD(
