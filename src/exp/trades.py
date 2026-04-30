@@ -7,6 +7,7 @@ import shutil
 
 import torch
 import torch.nn.functional as F
+from tqdm import tqdm
 
 from src.certify.rs import certify
 from src.config.trades import load_trades_config
@@ -94,10 +95,10 @@ def main():
         start_epoch = checkpoint['epoch']
         scheduler.step(start_epoch)
 
-    for epoch in range(1, args.epochs + 1):
+    for epoch in tqdm(range(1, config.params.epochs + 1), desc="Epoch"):
 
         # adversarial training
-        train(args, model, device, train_loader, optimizer, epoch)
+        train(config.params, model, device, train_loader, optimizer, scheduler, epoch)
 
         optimizer.step()
 
@@ -134,7 +135,7 @@ def main():
                     print('Ignoring...')
 
 
-def train(args, model, device, train_loader, optimizer, epoch):
+def train(args, model, device, train_loader, optimizer, scheduler, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
@@ -145,16 +146,18 @@ def train(args, model, device, train_loader, optimizer, epoch):
         loss = trades_loss(model=model,
                            x_natural=data,
                            y=target,
-                           optimizer=optimizer,
                            step_size=args.step_size,
                            epsilon=args.epsilon,
                            perturb_steps=args.num_steps,
-                           beta=args.beta)
+                           beta=args.beta
+                           )
+
         loss.backward()
         optimizer.step()
+        scheduler.step()
 
         # print progress
-        if batch_idx % args.log_interval == 0:
+        if batch_idx % 10 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                        100. * batch_idx / len(train_loader), loss.item()))

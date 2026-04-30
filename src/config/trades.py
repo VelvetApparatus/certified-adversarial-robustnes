@@ -6,11 +6,7 @@ from src.config._parsers import (
     _parse_trades_params, _parse_model, _parse_dataset,
     _parse_optimizer, _parse_scheduler
 )
-from src.config.common import ModelConfig, DatasetConfig, SchedulerConfig, OptimizerConfig
-
-
-
-
+from src.config.common import ModelConfig, DatasetConfig, SchedulerConfig, OptimizerConfig, TradesParams
 
 
 @dataclass
