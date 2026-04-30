@@ -28,7 +28,7 @@ class Smooth(object):
         self.ss = 0
         self.beta = beta
 
-    def certify(self, x: torch.tensor, n0: int, n: int, alpha: float, batch_size: int):
+    def certify(self, x: torch.Tensor, n0: int, n: int, alpha: float, batch_size: int):
         if self.mode == 'both':
             c_hard, c_soft = self.predict(x, n0, batch_size)
             o_hard, o_soft = self._sample_noise(x, n, batch_size)
