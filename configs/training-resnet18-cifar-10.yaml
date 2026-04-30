@@ -1,6 +1,7 @@
 model:
   name: resnet18_10
   pretrained: false
+  num_classes: 10
 
 datasets:
   train:

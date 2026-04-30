@@ -31,10 +31,10 @@ def build_resnet_18_10(
         weights_path: str = None,
         device: str = 'cpu',
         pretrained: bool = False,
+        num_classes=10,
 ):
-    # todo: make num_classes configurable
-    if not (pretrained):
-        return _get_resnet18(num_classes=10)
+    if not pretrained:
+        return _get_resnet18(num_classes=num_classes)
 
     if not os.path.exists(weights_path):
         raise FileNotFoundError("invalid path for custom weights: {}".format(weights_path))
