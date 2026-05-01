@@ -127,7 +127,6 @@ class CertificationParams:
 
 @dataclass
 class EvaluationTableParams:
-
     method: str
     comment: str
 
@@ -163,6 +162,25 @@ class EvaluationTableParams:
 
     # path to evaluation dir
     evaluation_dir: str
+
+
+@dataclass
+class DatasetSplitConfig:
+    enabled: bool = False
+
+    # Fraction of the original train dataset used for evaluation/validation.
+    # Example: 0.1 means 90% train / 10% eval.
+    eval_ratio: float = 0.1
+
+    # Seed for deterministic train/eval split.
+    seed: int = 42
+
+    # Whether to shuffle indices before splitting.
+    shuffle: bool = True
+
+    # Optional hard limit for eval subset size.
+    # Useful for fast experiments.
+    eval_size: Optional[int] = None
 
 
 @dataclass
