@@ -1,120 +1,91 @@
 import argparse
-import json
 import os
 import shutil
-import time
 
-import torch
-from torch.utils.data import DataLoader
-from tqdm import tqdm
-
-from src.adversaries.api import get_adversaries
-from src.config.evaluation import load_evaluate_config, EvaluationExperimentConfig
+from src.config.evaluation import load_evaluate_config
 from src.db.api import get_dataset
 from src.model.api import get_model
+import pandas as pd
+from src.evaluation.table import evaluate
+from src.certify.table import certify
 from src.pkg import (
     get_device,
     get_loss_fn,
-    init_metrics,
-    update_metrics,
-    finalize_metrics,
 )
 
 arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument("--config", default="config/config.yaml")
+arg_parser.add_argument("--config")
 args = arg_parser.parse_args()
-
-
-def save_evaluation_results(
-        results,
-        cfg: EvaluationExperimentConfig,
-        config_path: str,
-):
-    dataset_name = cfg.test_dataset.name
-
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-
-    output_root = cfg.evaluation_root
-
-    run_name = f"{cfg.model.name}_{dataset_name}_{timestamp}"
-    run_dir = os.path.join(output_root, run_name)
-
-    os.makedirs(run_dir, exist_ok=True)
-
-    results_path = os.path.join(run_dir, "results.json")
-    config_copy_path = os.path.join(run_dir, "config.yaml")
-
-    with open(results_path, "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=4, ensure_ascii=False)
-
-    shutil.copyfile(config_path, config_copy_path)
-
-    print(f"\nSaved evaluation results to: {results_path}")
-    print(f"Saved config copy to: {config_copy_path}")
-
-
-def evaluate_clean(model, test_loader, criterion, device):
-    model.eval()
-    clean_metrics = init_metrics()
-
-    for x, y in tqdm(test_loader, total=len(test_loader), desc="Clean evaluation"):
-        x = x.to(device, non_blocking=True)
-        y = y.to(device, non_blocking=True)
-
-        batch_size = x.size(0)
-
-        with torch.no_grad():
-            logits = model(x)
-            loss = criterion(logits, y)
-
-        update_metrics(
-            storage=clean_metrics,
-            logits=logits,
-            y=y,
-            loss=loss,
-            batch_size=batch_size,
-        )
-
-    return finalize_metrics(clean_metrics)
-
-
-def evaluate_adversarial(model, test_loader, adversary, criterion, device):
-    model.eval()
-    adv_metrics = init_metrics()
-
-    for x, y in tqdm(
-            test_loader,
-            total=len(test_loader),
-            desc=f"Adversarial evaluation [{adversary.name}]",
-    ):
-        x = x.to(device, non_blocking=True)
-        y = y.to(device, non_blocking=True)
-
-        batch_size = x.size(0)
-
-        # Здесь no_grad использовать нельзя:
-        # FGSM / PGD обычно требуют градиенты по входу.
-        x_adv = adversary.gen(model, x, y)
-
-        model.eval()
-
-        with torch.no_grad():
-            logits = model(x_adv)
-            loss = criterion(logits, y)
-
-        update_metrics(
-            storage=adv_metrics,
-            logits=logits,
-            y=y,
-            loss=loss,
-            batch_size=batch_size,
-        )
-
-    return finalize_metrics(adv_metrics)
 
 
 def main():
     cfg = load_evaluate_config(args.config)
+    os.makedirs(cfg.params.evaluation_dir, exist_ok=True)
+    shutil.copy(args.config, os.path.join(cfg.params.evaluation_dir, "config-eval.yaml"))
+
+    csv_path = os.path.join(cfg.params.evaluation_dir, "eval.csv")
+
+    df = None
+
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+
+    if df is None or len(df) == 0:
+        df = pd.DataFrame(
+            columns=[
+                # =====================
+                # Experiment info
+                # =====================
+                "method",
+                "model",
+                "dataset",
+                "test_samples",
+                "comment",
+
+                # =====================
+                # Evaluation metrics
+                # =====================
+                "clean_loss",
+                "clean_acc",
+
+                "pgd_loss",
+                "pgd_acc",
+
+                "fgsm_loss",
+                "fgsm_acc",
+
+                "noisy_loss",
+                "noisy_acc",
+
+                # =====================
+                # Certification config
+                # =====================
+                "cert_mode",
+                "sigma",
+                "cert_num_img",
+                "cert_N0",
+                "cert_N",
+                "cert_alpha",
+                "cert_batch",
+
+                # =====================
+                # Certification metrics
+                # =====================
+                "cert_acc_000",
+                "cert_acc_025",
+                "cert_acc_050",
+                "cert_acc_075",
+                "cert_acc_100",
+                "cert_acc_125",
+                "cert_acc_150",
+                "cert_acc_175",
+                "cert_acc_200",
+                "cert_acc_225",
+
+                "avg_radius",
+                "median_radius",
+            ]
+        )
 
     device = get_device()
 
@@ -125,60 +96,91 @@ def main():
 
     test_dataset = get_dataset(test_dataset_cfg)
 
-    test_loader = DataLoader(
-        test_dataset,
-        batch_size=test_dataset_cfg.batch_size,
-        shuffle=False,
-        num_workers=test_dataset_cfg.num_workers,
-        pin_memory=(device.type == "cuda"),
-        drop_last=False,
-    )
-
-    adversaries = get_adversaries(cfg.attacks)
-
+    print("==========================================")
     print("\nEvaluation started")
     print(f"Device: {device}")
     print(f"Model: {cfg.model.name}")
     print(f"Dataset: {test_dataset_cfg.name}")
     print(f"Test samples: {len(test_dataset)}")
-    print()
+    print("==========================================")
 
-    clean_result = evaluate_clean(
+    eval_metrics = evaluate(
         model=model,
-        test_loader=test_loader,
-        criterion=criterion,
+        eval_dataset=test_dataset,
         device=device,
+        batch_size=test_dataset_cfg.batch_size,
+        loss_fn=criterion,
+        pgd_conf=cfg.pgd,
+        fgsm_conf=cfg.fgsm,
+        sigma=cfg.params.sigma,
     )
 
-    results = {
-        "clean": clean_result,
+    cert_metrics = certify(
+        model=model,
+        device=device,
+        dataset=test_dataset,
+        num_classes=cfg.model.num_classes,
+        mode=cfg.params.cert_mode,
+        # todo: to config
+        start_img=0,
+        num_img=500,
+        skip=1,
+        sigma=cfg.params.sigma,
+        N0=cfg.params.N0,
+        N=cfg.params.N,
+        alpha=cfg.params.alpha,
+        batch=test_dataset_cfg.batch_size,
+        verbose=True,
+        grid=(0.25, 0.50, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25),
+        beta=cfg.params.beta,
+    )
+
+    row = {
+        "method": cfg.params.method,
+        "model": cfg.model.name,
+        "dataset": cfg.test_dataset.name,
+        "test_samples": len(test_dataset),
+        "comment": cfg.params.comment,
+
+        "clean_loss": eval_metrics.get("clean_loss"),
+        "clean_acc": eval_metrics.get("clean_acc"),
+
+        "pgd_loss": eval_metrics.get("pgd_loss"),
+        "pgd_acc": eval_metrics.get("pgd_acc"),
+
+        "fgsm_loss": eval_metrics.get("fgsm_loss"),
+        "fgsm_acc": eval_metrics.get("fgsm_acc"),
+
+        "noisy_loss": eval_metrics.get("noisy_loss"),
+        "noisy_acc": eval_metrics.get("noisy_acc"),
+
+        "cert_mode": cert_metrics.get("mode"),
+        "sigma": cert_metrics.get("sigma"),
+        "cert_num_img": cert_metrics.get("num_img"),
+        "cert_N0": cert_metrics.get("N0"),
+        "cert_N": cert_metrics.get("N"),
+        "cert_alpha": cert_metrics.get("alpha"),
+        "cert_batch": cert_metrics.get("batch"),
+
+        "cert_acc_000": cert_metrics.get("cert_acc_000"),
+        "cert_acc_025": cert_metrics.get("cert_acc_025"),
+        "cert_acc_050": cert_metrics.get("cert_acc_050"),
+        "cert_acc_075": cert_metrics.get("cert_acc_075"),
+        "cert_acc_100": cert_metrics.get("cert_acc_100"),
+        "cert_acc_125": cert_metrics.get("cert_acc_125"),
+        "cert_acc_150": cert_metrics.get("cert_acc_150"),
+        "cert_acc_175": cert_metrics.get("cert_acc_175"),
+        "cert_acc_200": cert_metrics.get("cert_acc_200"),
+        "cert_acc_225": cert_metrics.get("cert_acc_225"),
+
+        "avg_radius": cert_metrics.get("avg_radius"),
+        "median_radius": cert_metrics.get("median_radius"),
     }
+    df.loc[len(df)] = row
 
-    for adversary in adversaries:
-        adv_result = evaluate_adversarial(
-            model=model,
-            test_loader=test_loader,
-            adversary=adversary,
-            criterion=criterion,
-            device=device,
-        )
+    df.to_csv(csv_path, index=False)
 
-        results[adversary.name] = adv_result
-
-    print("\nResults:")
-    for name, result in results.items():
-        print(
-            f"{name}: "
-            f"loss={result['loss']:.4f}, "
-            f"acc={result['acc']:.4f}, "
-            f"total={result['total']}"
-        )
-
-    save_evaluation_results(
-        results=results,
-        cfg=cfg,
-        config_path=args.config,
-    )
+    print("Eval reports saved in", csv_path)
 
 
 if __name__ == "__main__":

@@ -126,6 +126,46 @@ class CertificationParams:
 
 
 @dataclass
+class EvaluationTableParams:
+
+    method: str
+    comment: str
+
+    # Loss function used for clean/noisy/adversarial evaluation.
+    loss_fn: LossName
+
+    # Standard deviation of Gaussian noise used for noisy evaluation
+    # and randomized smoothing certification.
+    sigma: float
+
+    # Randomized smoothing certification mode.
+    # "hard" uses standard majority-vote certification.
+    # "soft" uses soft prediction probabilities and empirical Bernstein bound.
+    # "both" computes both hard and soft certificates.
+    cert_mode: str
+
+    # Number of Monte Carlo samples used for class selection.
+    # The most frequent / most probable class is selected using these samples
+    # before running the main certification procedure.
+    N0: int
+
+    # Number of Monte Carlo samples used to estimate the certified radius.
+    # Larger values give tighter statistical bounds but increase runtime.
+    N: int
+
+    # Failure probability for the statistical confidence bound.
+    # Smaller alpha gives stronger confidence but may reduce certified radius.
+    alpha: float
+
+    # Temperature / smoothing parameter used by Soft-RS mode.
+    # Relevant mainly when cert_mode is "soft" or "both".
+    beta: float
+
+    # path to evaluation dir
+    evaluation_dir: str
+
+
+@dataclass
 class MacerParams:
     output_dir: str
     seed: int

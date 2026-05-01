@@ -14,6 +14,12 @@ class FGSMAttack(Adversary):
         self.mean = mean
         self.std = std
 
+    def __repr__(self):
+        return "FGSM attack (eps={eps}) (mean={mean}_ (std={std})".format(eps=self.eps, mean=self.mean, std=self.std)
+
+    def __str__(self):
+        return self.__repr__()
+
     def _gen(self, model, X, y):
         X_adv = X.detach().clone()
         X_adv.requires_grad_(True)
