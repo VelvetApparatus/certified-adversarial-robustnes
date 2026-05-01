@@ -2,7 +2,7 @@ from typing import Optional
 
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
     OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, CertificationParams, TradesParams, \
-    MacerParams
+    MacerParams, EvaluationTableParams
 
 
 def _parse_attack(cfg: dict) -> AttackConfig:
@@ -164,6 +164,47 @@ def _parse_trades_params(cfg: Optional[dict]) -> TradesParams:
         checkpoint=cfg.get("checkpoint", None),
         cert_start=cfg.get("cert_start", 0),
         cert_num=cfg.get("cert_num", 100),
+    )
+
+
+def _parse_pgd(cfg: Optional[dict]) -> PGDAttackConfig:
+    cfg = cfg or {}
+    return PGDAttackConfig(
+        name=cfg.get("name", "pgd"),
+        epsilon=cfg.get("epsilon", 0.01),
+        alpha=cfg.get("alpha", 0.01),
+        steps=cfg.get("steps", 100),
+        norm=cfg.get("norm", "l2"),
+        loss_fn=cfg.get("loss_fn", None),
+        mean=cfg.get("mean", None),
+        std=cfg.get("std", None),
+    )
+
+
+def _parse_fgsm(cfg: Optional[dict]) -> FGSMAttackConfig:
+    cfg = cfg or {}
+    return FGSMAttackConfig(
+        name=cfg.get("name", "fgsm"),
+        epsilon=cfg.get("epsilon", 0.01),
+        loss_fn=cfg.get("loss_fn", None),
+        mean=cfg.get("mean", None),
+        std=cfg.get("std", None),
+    )
+
+
+def _parse_evaluation_table_params(cfg: Optional[dict]) -> EvaluationTableParams:
+    cfg = cfg or {}
+    return EvaluationTableParams(
+        method=cfg.get("method", None),
+        comment=cfg.get("comment", None),
+        loss_fn=cfg.get("loss_fn", None),
+        sigma=cfg.get("sigma", 0.01),
+        cert_mode=cfg.get("cert_mode", "hard"),
+        N0=cfg.get("N0", 100),
+        N=cfg.get("N", 100),
+        alpha=cfg.get("alpha", 0.01),
+        beta=cfg.get("beta", 0.01),
+        evaluation_dir=cfg.get("evaluation_dir", None),
     )
 
 

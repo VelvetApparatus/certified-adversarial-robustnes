@@ -4,7 +4,7 @@ from src.robustness.common import RobustnessRegularization
 from src.adversaries.common import Adversary
 
 
-class AdversarialTraining(RobustnessRegularization):
+class AdversarialGenerator(RobustnessRegularization):
     def __init__(self, adversary: Adversary, ratio: float = 1.0):
         super().__init__()
 
@@ -16,6 +16,10 @@ class AdversarialTraining(RobustnessRegularization):
         self.adversary = adversary
         self.ratio = ratio
 
+
+    def adversary_name(self):
+        return self.adversary.name
+
     def augment_on_batch(self, x, y, model):
         if self.ratio == 0.0:
             return x, y
@@ -23,7 +27,7 @@ class AdversarialTraining(RobustnessRegularization):
         batch_size = x.size(0)
         device = x.device
 
-        mask = torch.rand(batch_size, device=device) < self.ratio
+        mask = torch.rand(batch_size, device=device) <= self.ratio
 
         if mask.sum() == 0:
             return x, y
