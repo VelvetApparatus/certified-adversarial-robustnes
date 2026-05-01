@@ -2,7 +2,7 @@ from typing import Optional
 
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
     OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, CertificationParams, TradesParams, \
-    MacerParams, EvaluationTableParams
+    MacerParams, EvaluationTableParams, DatasetSplitConfig
 
 
 def _parse_attack(cfg: dict) -> AttackConfig:
@@ -215,4 +215,17 @@ def _parse_certification_params(cfg: dict) -> CertificationParams:
         n0=cfg["n0"],
         n=cfg["n"],
         alpha=cfg["alpha"],
+    )
+
+
+def _parse_dataset_split(cfg: Optional[dict]) -> DatasetSplitConfig:
+    cfg = cfg or {}
+
+    return DatasetSplitConfig(
+        enabled=cfg.get("enabled", False),
+        eval_ratio=cfg.get("eval_ratio", 0.1),
+        seed=cfg.get("seed", 42),
+        shuffle=cfg.get("shuffle", True),
+        eval_size=cfg.get("eval_size", None),
+
     )
