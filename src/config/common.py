@@ -187,6 +187,7 @@ class DatasetSplitConfig:
 
 @dataclass
 class GaussianTrainingParams:
+    sigma: float
     clean_loss_weight: float = 0.0
     noisy_loss_weight: float = 1.0
     noise_ratio: float = 1.0
