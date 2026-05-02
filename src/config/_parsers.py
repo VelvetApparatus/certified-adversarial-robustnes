@@ -2,7 +2,7 @@ from typing import Optional
 
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
     OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, CertificationParams, TradesParams, \
-    MacerParams, EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams
+    EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, MacerTrainingParams
 
 
 def _parse_attack(cfg: dict) -> AttackConfig:
@@ -127,23 +127,18 @@ def _parse_model(cfg: Optional[dict]) -> ModelConfig:
     )
 
 
-def _parse_macer_params(cfg: Optional[dict]) -> MacerParams:
+def _parse_macer_params(cfg: dict) -> MacerTrainingParams:
     cfg = cfg or {}
-    return MacerParams(
-        output_dir=cfg.get("output_dir", "./checkpoints"),
-        seed=cfg.get("seed", 42),
-        gauss_samples=cfg.get("gauss_samples", 100),
-        sigma=cfg.get("sigma", 0.01),
-        beta=cfg.get("beta", 0.01),
-        num_classes=cfg.get("num_classes", 100),
-        gamma=cfg.get("gamma", 0.1),
-        lbd=cfg.get("lbd", 0.01),
-        epochs=cfg.get("epochs", 100),
-        certificate_every_epoch=cfg.get("certificate_every_epoch", False),
-        certificate_epoch_threshold=cfg.get("certificate_epoch_threshold", 200),
-        checkpoint=cfg.get("checkpoint", None),
-        cert_start=cfg.get("cert_start", 0),
-        cert_num=cfg.get("cert_num", 100),
+
+    return MacerTrainingParams(
+        gauss_samples=cfg.get("gauss_samples", 16),
+        sigma=cfg.get("sigma", 0.25),
+        num_classes=cfg.get("num_classes", 10),
+        beta=cfg.get("beta", 16.0),
+        gamma=cfg.get("gamma", 8.0),
+        lbd=cfg.get("lbd", 12.0),
+        eps=cfg.get("eps", 1e-6),
+
     )
 
 
