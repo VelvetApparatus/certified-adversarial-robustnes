@@ -3,20 +3,19 @@ from dataclasses import dataclass
 import yaml
 
 from src.config._parsers import (
-    _parse_trades_params, _parse_model, _parse_dataset,
-    _parse_optimizer, _parse_scheduler
+    _parse_dataset, _parse_training, _parse_model, _parse_trades_params,
+    _parse_dataset_split
 )
-from src.config.common import ModelConfig, DatasetConfig, SchedulerConfig, OptimizerConfig, TradesParams
+from src.config.common import ModelConfig, DatasetConfig, TradesParams, TrainingConfig, DatasetSplitConfig
 
 
 @dataclass
 class TradesConfig:
+    training: TrainingConfig
     params: TradesParams
     model: ModelConfig
-    train_dataset: DatasetConfig
-    test_dataset: DatasetConfig
-    scheduler: SchedulerConfig
-    optimizer: OptimizerConfig
+    dataset: DatasetConfig
+    split: DatasetSplitConfig
 
 
 def load_trades_config(path: str) -> TradesConfig:
@@ -28,14 +27,17 @@ def load_trades_config(path: str) -> TradesConfig:
 
     if "model" not in raw:
         raise ValueError("Config must contain 'model'")
-    if "test_dataset" not in raw:
-        raise ValueError("Config must contain 'test_dataset'")
+    if "dataset" not in raw:
+        raise ValueError("Config must contain 'dataset'")
+    if "training" not in raw:
+        raise ValueError("Config must contain 'training'")
+    if "split" not in raw:
+        raise ValueError("Config must contain 'split'")
 
     return TradesConfig(
+        training=_parse_training(raw["training"]),
         params=_parse_trades_params(raw["trades_params"]),
         model=_parse_model(raw["model"]),
-        train_dataset=_parse_dataset(raw["train_dataset"]),
-        test_dataset=_parse_dataset(raw["test_dataset"]),
-        scheduler=_parse_scheduler(raw["scheduler"]),
-        optimizer=_parse_optimizer(raw["optimizer"]),
+        dataset=_parse_dataset(raw["dataset"]),
+        split=_parse_dataset_split(raw["split"]),
     )
