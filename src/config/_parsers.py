@@ -2,7 +2,7 @@ from typing import Optional
 
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
     OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, CertificationParams, TradesParams, \
-    MacerParams, EvaluationTableParams, DatasetSplitConfig
+    MacerParams, EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams
 
 
 def _parse_attack(cfg: dict) -> AttackConfig:
@@ -106,6 +106,7 @@ def _parse_training(cfg: Optional[dict]) -> TrainingConfig:
 
         optimizer=_parse_optimizer(cfg.get("optimizer")),
         scheduler=_parse_scheduler(cfg.get("scheduler")),
+        criterion=cfg.get("criterion"),
         wandb=_parse_wandb(cfg.get("wandb")),
 
         save_dir=cfg.get("save_dir", "./checkpoints"),
@@ -227,5 +228,18 @@ def _parse_dataset_split(cfg: Optional[dict]) -> DatasetSplitConfig:
         seed=cfg.get("seed", 42),
         shuffle=cfg.get("shuffle", True),
         eval_size=cfg.get("eval_size", None),
+
+    )
+
+
+def _parse_gaussian_params(cfg: Optional[dict]) -> GaussianTrainingParams:
+    cfg = cfg or {}
+    return GaussianTrainingParams(
+        clean_loss_weight=cfg.get("clean_loss_weight", 1.0),
+        noisy_loss_weight=cfg.get("noisy_loss_weight", 1.0),
+        noise_ratio=cfg.get("noise_ratio", 0.0),
+        mean=cfg.get("mean", None),
+        std=cfg.get("std", None),
+        normalized_space=cfg.get("normalized_space", True),
 
     )
