@@ -108,11 +108,13 @@ class TrainingConfig:
     seed: int = 42
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
+    criterion: LossName = "cross_entropy"
     wandb: WandbConfig = field(default_factory=WandbConfig)
-    save_dir: str = "./checkpoints"
+    checkpoint: str = None
     save_best: bool = True
     save_last: bool = True
     metric_for_best_model: str = "test_accuracy"
+    save_dir: str = None
 
 
 @dataclass
@@ -123,6 +125,75 @@ class CertificationParams:
     n: int = 100000
     alpha: float = 0.001
     seed: int = 42
+
+
+@dataclass
+class EvaluationTableParams:
+    method: str
+    comment: str
+
+    # Loss function used for clean/noisy/adversarial evaluation.
+    loss_fn: LossName
+
+    # Standard deviation of Gaussian noise used for noisy evaluation
+    # and randomized smoothing certification.
+    sigma: float
+
+    # Randomized smoothing certification mode.
+    # "hard" uses standard majority-vote certification.
+    # "soft" uses soft prediction probabilities and empirical Bernstein bound.
+    # "both" computes both hard and soft certificates.
+    cert_mode: str
+
+    # Number of Monte Carlo samples used for class selection.
+    # The most frequent / most probable class is selected using these samples
+    # before running the main certification procedure.
+    N0: int
+
+    # Number of Monte Carlo samples used to estimate the certified radius.
+    # Larger values give tighter statistical bounds but increase runtime.
+    N: int
+
+    # Failure probability for the statistical confidence bound.
+    # Smaller alpha gives stronger confidence but may reduce certified radius.
+    alpha: float
+
+    # Temperature / smoothing parameter used by Soft-RS mode.
+    # Relevant mainly when cert_mode is "soft" or "both".
+    beta: float
+
+    # path to evaluation dir
+    evaluation_dir: str
+
+
+@dataclass
+class DatasetSplitConfig:
+    enabled: bool = False
+
+    # Fraction of the original train dataset used for evaluation/validation.
+    # Example: 0.1 means 90% train / 10% eval.
+    eval_ratio: float = 0.1
+
+    # Seed for deterministic train/eval split.
+    seed: int = 42
+
+    # Whether to shuffle indices before splitting.
+    shuffle: bool = True
+
+    # Optional hard limit for eval subset size.
+    # Useful for fast experiments.
+    eval_size: Optional[int] = None
+
+
+@dataclass
+class GaussianTrainingParams:
+    sigma: float
+    clean_loss_weight: float = 0.0
+    noisy_loss_weight: float = 1.0
+    noise_ratio: float = 1.0
+    normalized_space: bool = True
+    mean: torch.Tensor = None
+    std: torch.Tensor = None
 
 
 @dataclass

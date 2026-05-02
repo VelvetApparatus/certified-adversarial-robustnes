@@ -1,0 +1,37 @@
+import argparse
+from src.config.gaussian import load_gaussian_train_config
+from src.train.common import train
+from src.train.gaussian_training import gaussian_train_one_epoch
+from src.pkg import get_device, get_loss_fn
+
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument("--config", type=str, required=True)
+args = arg_parser.parse_args()
+
+
+def main():
+    cfg = load_gaussian_train_config(args.config)
+
+    device = get_device()
+    train(
+        name="gaussian_noise_training",
+        cfg=cfg.train,
+        model_cfg=cfg.model,
+        device=device,
+        train_dataset_config=cfg.dataset,
+        split_config=cfg.split,
+        loss_fn=get_loss_fn(cfg.train.criterion),
+        train_epoch_fn=gaussian_train_one_epoch,
+
+        sigma=cfg.params.sigma,
+        clean_loss_weight=cfg.params.clean_loss_weight,
+        noisy_loss_weight=cfg.params.noisy_loss_weight,
+        noise_ratio=cfg.params.noise_ratio,
+        mean=cfg.params.mean,
+        std=cfg.params.std,
+        normalized_space=cfg.params.normalized_space,
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -2,7 +2,7 @@ from typing import Optional
 
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
     OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, CertificationParams, TradesParams, \
-    MacerParams
+    MacerParams, EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams
 
 
 def _parse_attack(cfg: dict) -> AttackConfig:
@@ -106,6 +106,7 @@ def _parse_training(cfg: Optional[dict]) -> TrainingConfig:
 
         optimizer=_parse_optimizer(cfg.get("optimizer")),
         scheduler=_parse_scheduler(cfg.get("scheduler")),
+        criterion=cfg.get("criterion"),
         wandb=_parse_wandb(cfg.get("wandb")),
 
         save_dir=cfg.get("save_dir", "./checkpoints"),
@@ -167,6 +168,47 @@ def _parse_trades_params(cfg: Optional[dict]) -> TradesParams:
     )
 
 
+def _parse_pgd(cfg: Optional[dict]) -> PGDAttackConfig:
+    cfg = cfg or {}
+    return PGDAttackConfig(
+        name=cfg.get("name", "pgd"),
+        epsilon=cfg.get("epsilon", 0.01),
+        alpha=cfg.get("alpha", 0.01),
+        steps=cfg.get("steps", 100),
+        norm=cfg.get("norm", "l2"),
+        loss_fn=cfg.get("loss_fn", None),
+        mean=cfg.get("mean", None),
+        std=cfg.get("std", None),
+    )
+
+
+def _parse_fgsm(cfg: Optional[dict]) -> FGSMAttackConfig:
+    cfg = cfg or {}
+    return FGSMAttackConfig(
+        name=cfg.get("name", "fgsm"),
+        epsilon=cfg.get("epsilon", 0.01),
+        loss_fn=cfg.get("loss_fn", None),
+        mean=cfg.get("mean", None),
+        std=cfg.get("std", None),
+    )
+
+
+def _parse_evaluation_table_params(cfg: Optional[dict]) -> EvaluationTableParams:
+    cfg = cfg or {}
+    return EvaluationTableParams(
+        method=cfg.get("method", None),
+        comment=cfg.get("comment", None),
+        loss_fn=cfg.get("loss_fn", None),
+        sigma=cfg.get("sigma", 0.01),
+        cert_mode=cfg.get("cert_mode", "hard"),
+        N0=cfg.get("N0", 100),
+        N=cfg.get("N", 100),
+        alpha=cfg.get("alpha", 0.01),
+        beta=cfg.get("beta", 0.01),
+        evaluation_dir=cfg.get("evaluation_dir", None),
+    )
+
+
 def _parse_certification_params(cfg: dict) -> CertificationParams:
     return CertificationParams(
         sigma=cfg["sigma"],
@@ -174,4 +216,31 @@ def _parse_certification_params(cfg: dict) -> CertificationParams:
         n0=cfg["n0"],
         n=cfg["n"],
         alpha=cfg["alpha"],
+    )
+
+
+def _parse_dataset_split(cfg: Optional[dict]) -> DatasetSplitConfig:
+    cfg = cfg or {}
+
+    return DatasetSplitConfig(
+        enabled=cfg.get("enabled", False),
+        eval_ratio=cfg.get("eval_ratio", 0.1),
+        seed=cfg.get("seed", 42),
+        shuffle=cfg.get("shuffle", True),
+        eval_size=cfg.get("eval_size", None),
+
+    )
+
+
+def _parse_gaussian_params(cfg: Optional[dict]) -> GaussianTrainingParams:
+    cfg = cfg or {}
+    return GaussianTrainingParams(
+        sigma=cfg.get("sigma", 0.01),
+        clean_loss_weight=cfg.get("clean_loss_weight", 1.0),
+        noisy_loss_weight=cfg.get("noisy_loss_weight", 1.0),
+        noise_ratio=cfg.get("noise_ratio", 0.0),
+        mean=cfg.get("mean", None),
+        std=cfg.get("std", None),
+        normalized_space=cfg.get("normalized_space", True),
+
     )
