@@ -79,7 +79,7 @@ def train(
     )
 
     optimizer = get_optimizer(model, cfg.optimizer)
-    scheduler = get_scheduler(optimizer, cfg.scheduler)
+    scheduler = get_scheduler(optimizer, cfg.scheduler, epochs=cfg.epochs)
 
     run_name = "{}_{}_{}".format(
         model_cfg.name,

@@ -1,5 +1,6 @@
 from tqdm import tqdm
 
+from src.config.adversarial_training import AdversarialTrainingConfig
 from src.pkg import update_metrics, finalize_metrics, init_metrics
 
 
@@ -11,13 +12,13 @@ def adversarial_train_one_epoch(
         optimizer,
         device,
         epoch: int,
-        cfg,
+        adversarial_config: AdversarialTrainingConfig,
 ):
     model.train()
     metrics = init_metrics()
 
-    clean_loss_weight = getattr(cfg.training, "clean_loss_weight", 0.8)
-    adv_loss_weight = getattr(cfg.training, "adv_loss_weight", 0.2)
+    clean_loss_weight = getattr(adversarial_config.training, "clean_loss_weight", 0.8)
+    adv_loss_weight = getattr(adversarial_config.training, "adv_loss_weight", 0.2)
 
     progress = tqdm(
         train_loader,

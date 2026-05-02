@@ -34,6 +34,7 @@ def main():
         loss_fn=get_loss_fn(cfg.training.criterion),
         train_epoch_fn=adversarial_train_one_epoch,
         adversary=adversary,
+        adversarial_config=cfg
     )
 
 
