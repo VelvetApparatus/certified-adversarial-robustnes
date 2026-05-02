@@ -1,6 +1,6 @@
 import torch
 
-from src.robustness.common import RobustnessRegularization
+from src.robustness.input.common import RobustnessRegularization
 from src.adversaries.common import Adversary
 
 

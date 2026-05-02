@@ -5,7 +5,7 @@ from src.pkg import get_loss_fn
 
 import torch
 from tqdm import tqdm
-from src.robustness.adversarial_training import AdversarialGenerator
+from src.robustness.input.adversarial_training import AdversarialGenerator
 
 
 def evaluate(

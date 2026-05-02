@@ -109,7 +109,7 @@ class TrainingConfig:
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
     wandb: WandbConfig = field(default_factory=WandbConfig)
-    save_dir: str = "./checkpoints"
+    checkpoint: str = None
     save_best: bool = True
     save_last: bool = True
     metric_for_best_model: str = "test_accuracy"

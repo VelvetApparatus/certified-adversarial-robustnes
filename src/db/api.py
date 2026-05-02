@@ -3,6 +3,7 @@ import torch
 from torch.utils.data import Dataset, Subset, random_split
 from src.config._parsers import DatasetConfig
 from src.config.common import DatasetSplitConfig
+from torch.utils.data import DataLoader
 
 
 def get_dataset(
@@ -65,3 +66,34 @@ def split_train_eval_dataset(
     eval_indices = list(range(train_size, dataset_size))
 
     return Subset(dataset, train_indices), Subset(dataset, eval_indices)
+
+
+def build_train_eval_loaders(dataset_cfg, split_cfg):
+    full_train_dataset = get_dataset(dataset_cfg)
+
+    if split_cfg.enabled:
+        train_dataset, eval_dataset = split_train_eval_dataset(
+            dataset=full_train_dataset,
+            split_cfg=split_cfg,
+        )
+    else:
+        train_dataset = full_train_dataset
+        eval_dataset = None
+
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=dataset_cfg.batch_size,
+        shuffle=True,
+        num_workers=dataset_cfg.num_workers,
+    )
+
+    eval_loader = None
+    if eval_dataset is not None:
+        eval_loader = DataLoader(
+            eval_dataset,
+            batch_size=dataset_cfg.batch_size,
+            shuffle=False,
+            num_workers=dataset_cfg.num_workers,
+        )
+
+    return train_loader, eval_loader, train_dataset, eval_dataset
