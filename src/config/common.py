@@ -108,11 +108,13 @@ class TrainingConfig:
     seed: int = 42
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
+    criterion: LossName = "cross_entropy"
     wandb: WandbConfig = field(default_factory=WandbConfig)
     checkpoint: str = None
     save_best: bool = True
     save_last: bool = True
     metric_for_best_model: str = "test_accuracy"
+    save_dir: str = None
 
 
 @dataclass
@@ -181,6 +183,16 @@ class DatasetSplitConfig:
     # Optional hard limit for eval subset size.
     # Useful for fast experiments.
     eval_size: Optional[int] = None
+
+
+@dataclass
+class GaussianTrainingParams:
+    clean_loss_weight: float = 0.0
+    noisy_loss_weight: float = 1.0
+    noise_ratio: float = 1.0
+    normalized_space: bool = True
+    mean: torch.Tensor = None
+    std: torch.Tensor = None
 
 
 @dataclass
