@@ -1,4 +1,7 @@
 import argparse
+import os
+import shutil
+
 from src.config.gaussian import load_gaussian_train_config
 from src.train.common import train
 from src.train.gaussian_training import gaussian_train_one_epoch
@@ -11,7 +14,7 @@ args = arg_parser.parse_args()
 
 def main():
     cfg = load_gaussian_train_config(args.config)
-
+    shutil.copy(args.config, os.path.join(cfg.train.save_dir, "config.yaml"))
     device = get_device()
     train(
         name="gaussian_noise_training",

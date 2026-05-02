@@ -47,7 +47,7 @@ train:
     milestones: [ ]
 
   wandb:
-    enabled: false
+    enabled: true
     project: certified-robustness
     entity: null
     run_name: gaussian_noise_cifar10_resnet18
