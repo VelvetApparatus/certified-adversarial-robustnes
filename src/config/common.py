@@ -197,21 +197,27 @@ class GaussianTrainingParams:
 
 
 @dataclass
-class MacerParams:
-    output_dir: str
-    seed: int
-    gauss_samples: int
-    sigma: float
-    beta: float
-    num_classes: int
-    gamma: float
-    lbd: float
-    epochs: int
-    certificate_every_epoch: int
-    certificate_epoch_threshold: int
-    checkpoint: str
-    cert_start: int
-    cert_num: int
+class MacerTrainingParams:
+    # Number of Gaussian samples per input during training.
+    gauss_samples: int = 16
+
+    # Gaussian noise standard deviation.
+    sigma: float = 0.25
+
+    # Number of classes in the dataset.
+    num_classes: int = 10
+
+    # Softmax sharpening parameter used in MACER robustness term.
+    beta: float = 16.0
+
+    # Target margin in inverse Gaussian CDF space.
+    gamma: float = 8.0
+
+    # Weight of MACER robustness regularization.
+    lbd: float = 12.0
+
+    # Numerical stability epsilon for probabilities before icdf/log.
+    eps: float = 1e-6
 
 
 @dataclass
