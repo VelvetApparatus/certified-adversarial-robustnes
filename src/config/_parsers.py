@@ -235,6 +235,7 @@ def _parse_dataset_split(cfg: Optional[dict]) -> DatasetSplitConfig:
 def _parse_gaussian_params(cfg: Optional[dict]) -> GaussianTrainingParams:
     cfg = cfg or {}
     return GaussianTrainingParams(
+        sigma=cfg.get("sigma", 0.01),
         clean_loss_weight=cfg.get("clean_loss_weight", 1.0),
         noisy_loss_weight=cfg.get("noisy_loss_weight", 1.0),
         noise_ratio=cfg.get("noise_ratio", 0.0),

@@ -22,7 +22,8 @@ def main():
         split_config=cfg.split,
         loss_fn=get_loss_fn(cfg.train.criterion),
         train_epoch_fn=gaussian_train_one_epoch,
-        # train epoch fn arguments
+
+        sigma=cfg.params.sigma,
         clean_loss_weight=cfg.params.clean_loss_weight,
         noisy_loss_weight=cfg.params.noisy_loss_weight,
         noise_ratio=cfg.params.noise_ratio,
