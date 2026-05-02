@@ -5,6 +5,7 @@ from src.config.common import SchedulerConfig
 def get_scheduler(
         optimizer,
         cfg: SchedulerConfig,
+        epochs: int = None,
 ):
     scheduler_cfg = cfg
 
@@ -27,7 +28,7 @@ def get_scheduler(
     if scheduler_cfg.name == "cosine":
         return torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer,
-            T_max=cfg.training.epochs,
+            T_max=epochs,
             eta_min=scheduler_cfg.eta_min,
         )
 
