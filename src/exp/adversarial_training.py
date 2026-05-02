@@ -1,4 +1,7 @@
 import argparse
+import os
+import shutil
+
 from src.config.adversarial_training import load_adversarial_training_config
 from src.adversaries.pgd import PGD
 from src.train.common import train
@@ -12,6 +15,7 @@ args = arg_parser.parse_args()
 
 def main():
     cfg = load_adversarial_training_config(args.config)
+    shutil.copy(args.config, os.path.join(cfg.training.save_dir, "config.yaml"))
 
     adversary = PGD(
         epsilon=cfg.pgd.epsilon,
