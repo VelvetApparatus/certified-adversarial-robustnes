@@ -1,44 +1,34 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import yaml
 
-from src.config._parsers import _parse_model, _parse_dataset, _parse_optimizer, _parse_scheduler, _parse_macer_params
-from src.config.common import DatasetConfig, SchedulerConfig, OptimizerConfig, ModelConfig, MacerParams
+from src.config._parsers import _parse_model, _parse_dataset, _parse_dataset_split, _parse_training, _parse_macer_params
+from src.config.common import (
+    ModelConfig,
+    DatasetConfig,
+    DatasetSplitConfig,
+    TrainingConfig, MacerTrainingParams,
+)
 
 
 @dataclass
-class MacerConfig:
-    params: MacerParams
+class MacerTrainingConfig:
     model: ModelConfig
-    train_dataset: DatasetConfig
-    test_dataset: DatasetConfig
-    optimizer: OptimizerConfig
-    scheduler: SchedulerConfig
+    dataset: DatasetConfig
+    split: DatasetSplitConfig
+    training: TrainingConfig
+    params: MacerTrainingParams
 
 
-def load_macer_config(path: str) -> MacerConfig:
-    with open(path, "r") as f:
+def load_macer_training_config(path: str) -> MacerTrainingConfig:
+    with open(path, "r", encoding="utf-8") as f:
         raw = yaml.safe_load(f)
 
-    if raw is None:
-        raise ValueError("YAML config is empty")
+    return MacerTrainingConfig(
 
-    if "model" not in raw:
-        raise ValueError("Config must contain 'model'")
-    if "test_dataset" not in raw:
-        raise ValueError("Config must contain 'test_dataset'")
-
-    model_cfg = _parse_model(raw["model"])
-    train_ds_cfg = _parse_dataset(raw["train_dataset"])
-    test_ds_cfg = _parse_dataset(raw["test_dataset"])
-    optimizer_cfg = _parse_optimizer(raw["optimizer"])
-    scheduler_cfg = _parse_scheduler(raw["scheduler"])
-    macer_params = _parse_macer_params(raw["macer_params"])
-    return MacerConfig(
-        model=model_cfg,
-        train_dataset=train_ds_cfg,
-        test_dataset=test_ds_cfg,
-        optimizer=optimizer_cfg,
-        scheduler=scheduler_cfg,
-        params=macer_params,
+        model=_parse_model(raw["model"]),
+        dataset=_parse_dataset(raw["dataset"], default_train=True),
+        split=_parse_dataset_split(raw.get("split")),
+        training=_parse_training(raw["training"]),
+        params=_parse_macer_params(raw.get("params")),
     )
