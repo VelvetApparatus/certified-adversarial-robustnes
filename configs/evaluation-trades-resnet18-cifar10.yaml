@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/gaussian_noise/cifar10_resnet18/resnet18_10_cifar10_20260502_185827/checkpoints/best.pth
+  weights_path: outputs/train/trades/cifar10_resnet18/resnet18_10_cifar10_20260503_090617/checkpoints/best.pth
   num_classes: 10
 
 test_dataset:
@@ -24,7 +24,7 @@ pgd:
   mean: [ 0.4914, 0.4822, 0.4465 ]
   std: [ 0.2023, 0.1994, 0.2010 ]
 
-evaluation_root: data/out/evaluation/resnet18_cifar10_gauss
+evaluation_root: data/out/evaluation/resnet18_cifar10_trades
 
 
 
