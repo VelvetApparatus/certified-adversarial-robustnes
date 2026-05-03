@@ -9,23 +9,34 @@ test_dataset:
   download: true
   batch_size: 128
 
-attacks:
-  - name: fgsm
-    epsilon: 0.03137
-    loss_fn: cross_entropy
-    mean: [ 0.4914, 0.4822, 0.4465 ]
-    std: [ 0.2023, 0.1994, 0.2010 ]
+fgsm:
+  epsilon: 0.03137
+  loss_fn: cross_entropy
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2023, 0.1994, 0.2010 ]
 
-  - name: pgd
-    epsilon: 0.03137
-    alpha: 0.00784
-    steps: 10
-    norm: Linf
-    loss_fn: cross_entropy
-    mean: [ 0.4914, 0.4822, 0.4465 ]
-    std: [ 0.2023, 0.1994, 0.2010 ]
+pgd:
+  epsilon: 0.03137
+  alpha: 0.00784
+  steps: 10
+  norm: Linf
+  loss_fn: cross_entropy
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2023, 0.1994, 0.2010 ]
 
-evaluation_root: data/out/evaluation/resnet18_cifar10_baseline
+
+params:
+  method: baseline-clean
+  comment: resnet18_10 cifar10 clean-baseline evaluation
+  loss_fn: cross_entropy
+  sigma: 0.25
+  cert_mode: hard
+  N0: 100
+  N: 1000
+  alpha: 0.001
+  beta: 16.0
+  evaluation_dir: data/out/evaluation/resnet18_cifar10_baseline
+
 
 
 

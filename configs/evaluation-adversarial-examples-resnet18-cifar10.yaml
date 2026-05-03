@@ -26,8 +26,8 @@ pgd:
 
 params:
 
-  method: adversarial0-training
-  comment: resnet18_10 cifar10 gaussian training evaluation
+  method: adversarial-training
+  comment: resnet18_10 cifar10 adversarial training evaluation
   loss_fn: cross_entropy
 
   # used for noisy evaluation and randomized smoothing certification

@@ -24,7 +24,17 @@ pgd:
   mean: [ 0.4914, 0.4822, 0.4465 ]
   std: [ 0.2023, 0.1994, 0.2010 ]
 
-evaluation_root: data/out/evaluation/resnet18_cifar10_trades
+params:
+  method: trades
+  comment: resnet18_10 cifar10 trades evaluation
+  loss_fn: cross_entropy
+  sigma: 0.25
+  cert_mode: hard
+  N0: 100
+  N: 1000
+  alpha: 0.001
+  beta: 16.0
+  evaluation_dir: data/out/evaluation/resnet18_cifar10_trades
 
 
 
