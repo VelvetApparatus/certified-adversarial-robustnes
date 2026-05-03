@@ -25,7 +25,6 @@ def main():
         device=device,
         train_dataset_config=cfg.dataset,
         split_config=cfg.split,
-        output_dir=cfg.training.save_dir,
         loss_fn=loss_fn,
         train_epoch_fn=macer_train_one_epoch,
 
