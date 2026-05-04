@@ -29,5 +29,8 @@ class InputNormalizer(nn.Module):
     def forward(self, x):
         return self.model((x - self.mean) / self.std)
 
+    def model(self):
+        return self.model
+
     def normalize(self, x):
         return (x - self.mean) / self.std
