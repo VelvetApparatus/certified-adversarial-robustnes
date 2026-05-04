@@ -13,8 +13,6 @@ test_dataset:
 fgsm:
   epsilon: 0.03137
   loss_fn: cross_entropy
-  mean: [ 0.4914, 0.4822, 0.4465 ]
-  std: [ 0.2023, 0.1994, 0.2010 ]
 
 pgd:
   epsilon: 0.03137
@@ -22,8 +20,6 @@ pgd:
   steps: 10
   norm: l2
   loss_fn: cross_entropy
-  mean: [ 0.4914, 0.4822, 0.4465 ]
-  std: [ 0.2023, 0.1994, 0.2010 ]
 
 
 params:
@@ -39,6 +35,9 @@ params:
   evaluation_dir: data/out/evaluation/resnet18_cifar10
 
 
-
+normalization:
+  enabled: true
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2470, 0.2435, 0.2616 ]
 
 

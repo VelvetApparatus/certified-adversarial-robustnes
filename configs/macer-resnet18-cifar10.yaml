@@ -65,3 +65,9 @@ params:
   gamma: 8.0
   lbd: 12.0
   eps: 0.000001
+
+
+normalization:
+  enabled: true
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2470, 0.2435, 0.2616 ]
