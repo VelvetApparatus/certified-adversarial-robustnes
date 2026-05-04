@@ -15,12 +15,6 @@ def get_dataset(
     if cfg.name == "cifar10":
         transforms_list = [transforms.ToTensor()]
 
-        # todo: need it ?
-        # if cfg.normalize.enabled:
-        #     transforms_list.append(
-        #         transforms.Normalize(cfg.mean, cfg.std),
-        #     )
-        #
         transform = transforms.Compose(transforms_list)
 
         return datasets.CIFAR10(

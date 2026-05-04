@@ -25,7 +25,7 @@ class AdversarialTrainingConfig:
     # FGSM attack configuration used as a fast single-step adversarial baseline.
     fgsm: FGSMAttackConfig = field(default_factory=FGSMAttackConfig)
 
-    normalize: NormalizeConfig = field(default_factory=NormalizeConfig)
+    normalization: NormalizeConfig = field(default_factory=NormalizeConfig)
 
 
 def load_adversarial_training_config(path: str) -> AdversarialTrainingConfig:
@@ -48,7 +48,7 @@ def load_adversarial_training_config(path: str) -> AdversarialTrainingConfig:
     if "fgsm" not in raw:
         raise ValueError("Config must contain 'fgsm'")
     if "normalize" not in raw:
-        raise ValueError("Config must contain 'normalize'")
+        raise ValueError("Config must contain 'normalization'")
 
     return AdversarialTrainingConfig(
         model=_parse_model(raw["model"]),
@@ -57,5 +57,5 @@ def load_adversarial_training_config(path: str) -> AdversarialTrainingConfig:
         training=_parse_training(raw["training"]),
         pgd=_parse_pgd(raw["pgd"]),
         fgsm=_parse_fgsm(raw["fgsm"]),
-        normalize=_parse_normalization(raw["normalize"])
+        normalization=_parse_normalization(raw["normalization"])
     )

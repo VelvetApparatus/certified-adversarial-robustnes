@@ -74,13 +74,6 @@ def train(
 ):
     model = get_model(model_cfg, device).to(device)
 
-    if norm_cfg.enabled:
-        model = InputNormalizer(
-            model=model,
-            std=norm_cfg.std,
-            mean=norm_cfg.mean,
-        )
-
     train_loader, eval_loader, train_dataset, eval_dataset = build_train_eval_loaders(
         dataset_cfg=train_dataset_config,
         split_cfg=split_config,
@@ -114,6 +107,13 @@ def train(
 
         start_epoch = checkpoint["epoch"] + 1
         best_metric = checkpoint.get("best_metric", -1.0)
+
+    if norm_cfg.enabled:
+        model = InputNormalizer(
+            model=model,
+            std=norm_cfg.std,
+            mean=norm_cfg.mean,
+        )
 
     use_wandb = init_wandb_if_needed(
         name=name,
@@ -179,7 +179,7 @@ def train(
 
             save_checkpoint(
                 path=best_path,
-                model=model,
+                model=model.model(),
                 optimizer=optimizer,
                 scheduler=scheduler,
                 epoch=epoch,
@@ -195,7 +195,7 @@ def train(
 
         save_checkpoint(
             path=last_path,
-            model=model,
+            model=model.model(),
             optimizer=optimizer,
             scheduler=scheduler,
             epoch=cfg.epochs,

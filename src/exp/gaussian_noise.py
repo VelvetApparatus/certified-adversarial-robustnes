@@ -19,6 +19,7 @@ def main():
     train(
         name="gaussian_noise_training",
         cfg=cfg.train,
+        norm_cfg=cfg.normalization,
         model_cfg=cfg.model,
         device=device,
         train_dataset_config=cfg.dataset,
