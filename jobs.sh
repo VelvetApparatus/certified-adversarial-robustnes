@@ -33,11 +33,11 @@ run_job() {
   echo
 }
 
-run_job "adversarial_train" "./cmd/adversarial_training.sh"
-run_job "gaussian_training" "./cmd/gaussian_training.sh"
+# run_job "adversarial_train" "./cmd/adversarial_training.sh"
+# run_job "gaussian_training" "./cmd/gaussian_training.sh"
 run_job "macer" "./cmd/macer.sh"
 run_job "trades" "./cmd/trades.sh"
-run_job "evaluation" "./cmd/evaluation.sh"
+# run_job "evaluation" "./cmd/evaluation.sh"
 
 echo "All training jobs finished successfully."
 echo "Logs saved to: $LOG_DIR"
