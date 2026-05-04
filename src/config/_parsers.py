@@ -61,7 +61,6 @@ def _parse_dataset(cfg: dict, *, default_train: Optional[bool] = None) -> Datase
         train=train,
         download=cfg.get("download", True),
         batch_size=cfg.get("batch_size", 128),
-        num_workers=cfg.get("num_workers", 0),
     )
 
 

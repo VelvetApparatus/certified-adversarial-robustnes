@@ -68,18 +68,16 @@ pgd:
   steps: 10
 
   # Your NormName currently supports "Linf" and "l2".
-  norm: Linf
+  norm: l2
 
   loss_fn: cross_entropy
-
-  # CIFAR-10 normalization statistics.
-  # Used by attack implementation if it supports normalized inputs.
-  mean: [ 0.4914, 0.4822, 0.4465 ]
-  std: [ 0.2470, 0.2435, 0.2616 ]
 
 fgsm:
   name: fgsm
   epsilon: 0.031
   loss_fn: cross_entropy
+
+normalization:
+  enabled: true
   mean: [ 0.4914, 0.4822, 0.4465 ]
   std: [ 0.2470, 0.2435, 0.2616 ]

@@ -81,7 +81,6 @@ def build_train_eval_loaders(dataset_cfg, split_cfg):
         train_dataset,
         batch_size=dataset_cfg.batch_size,
         shuffle=True,
-        num_workers=dataset_cfg.num_workers,
     )
 
     eval_loader = None
@@ -90,7 +89,6 @@ def build_train_eval_loaders(dataset_cfg, split_cfg):
             eval_dataset,
             batch_size=dataset_cfg.batch_size,
             shuffle=False,
-            num_workers=dataset_cfg.num_workers,
         )
 
     return train_loader, eval_loader, train_dataset, eval_dataset

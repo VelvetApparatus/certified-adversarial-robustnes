@@ -64,7 +64,7 @@ class DatasetConfig:
     train: bool = False
     download: bool = True
     batch_size: int = 128
-    normalize: OptimizerConfig[NormalizeConfig] = field(default_factory=NormalizeConfig)
+    normalize: Optional[NormalizeConfig] = field(default_factory=NormalizeConfig)
 
 
 
