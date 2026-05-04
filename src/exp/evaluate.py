@@ -10,7 +10,7 @@ from src.evaluation.table import evaluate
 from src.certify.table import certify
 from src.pkg import (
     get_device,
-    get_loss_fn,
+    get_loss_fn, InputNormalizer,
 )
 
 arg_parser = argparse.ArgumentParser()
@@ -92,6 +92,12 @@ def main():
     test_dataset_cfg = cfg.test_dataset
 
     model = get_model(cfg.model, device).to(device)
+    if cfg.normalization.enabled:
+        model = InputNormalizer(
+            model=model,
+            std=cfg.normalization.std,
+            mean=cfg.normalization.mean,
+        )
     criterion = get_loss_fn(cfg.params.loss_fn)
 
     test_dataset = get_dataset(test_dataset_cfg)

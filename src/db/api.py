@@ -13,20 +13,17 @@ def get_dataset(
         raise Exception("root_dir should be provided with download=True")
 
     if cfg.name == "cifar10":
+        transforms_list = [transforms.ToTensor()]
+
+        transform = transforms.Compose(transforms_list)
+
         return datasets.CIFAR10(
             root=cfg.root_dir,
             train=cfg.train,
-            # TODO: add later
-            # transform=cfg.transform
-            transform=transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=(0.4914, 0.4822, 0.4465),
-                    std=(0.2023, 0.1994, 0.2010),
-                ),
-            ]),
+            transform=transform,
             download=cfg.download,
         )
+
     else:
         raise Exception("Unknown dataset: {}".format(cfg.name))
 

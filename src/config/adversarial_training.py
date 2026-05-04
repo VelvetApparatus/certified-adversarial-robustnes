@@ -2,11 +2,15 @@ from dataclasses import dataclass, field, replace
 from typing import Optional, List
 
 import yaml
+from mpmath.libmp import normalize
 
-from src.config._parsers import _parse_dataset, _parse_dataset_split, _parse_training, _parse_model, _parse_fgsm, \
-    _parse_pgd
-from src.config.common import ModelConfig, DatasetConfig, TrainingConfig, PGDAttackConfig, FGSMAttackConfig, \
-    DatasetSplitConfig
+from src.config._parsers import (_parse_dataset, _parse_dataset_split, _parse_training, _parse_model, _parse_fgsm,
+                                 _parse_pgd, _parse_normalization
+                                 )
+from src.config.common import (
+    ModelConfig, DatasetConfig, TrainingConfig, PGDAttackConfig, FGSMAttackConfig,
+    DatasetSplitConfig, NormalizeConfig
+)
 
 
 @dataclass
@@ -20,6 +24,8 @@ class AdversarialTrainingConfig:
 
     # FGSM attack configuration used as a fast single-step adversarial baseline.
     fgsm: FGSMAttackConfig = field(default_factory=FGSMAttackConfig)
+
+    normalization: NormalizeConfig = field(default_factory=NormalizeConfig)
 
 
 def load_adversarial_training_config(path: str) -> AdversarialTrainingConfig:
@@ -41,6 +47,8 @@ def load_adversarial_training_config(path: str) -> AdversarialTrainingConfig:
         raise ValueError("Config must contain 'pgd'")
     if "fgsm" not in raw:
         raise ValueError("Config must contain 'fgsm'")
+    if "normalize" not in raw:
+        raise ValueError("Config must contain 'normalization'")
 
     return AdversarialTrainingConfig(
         model=_parse_model(raw["model"]),
@@ -49,4 +57,5 @@ def load_adversarial_training_config(path: str) -> AdversarialTrainingConfig:
         training=_parse_training(raw["training"]),
         pgd=_parse_pgd(raw["pgd"]),
         fgsm=_parse_fgsm(raw["fgsm"]),
+        normalization=_parse_normalization(raw["normalization"])
     )

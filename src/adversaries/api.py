@@ -20,8 +20,6 @@ def get_adversaries(
                 FGSMAttack(
                     attack.epsilon,
                     loss_fn,
-                    mean=getattr(attack, "mean", None),
-                    std=getattr(attack, "std", None),
                 )
             )
         elif isinstance(attack, PGDAttackConfig):
@@ -32,8 +30,6 @@ def get_adversaries(
                     attack.steps,
                     loss_fn,
                     attack.norm,
-                    attack.mean,
-                    attack.std,
                 )
             )
         elif isinstance(attack, StAdvAttackConfig):

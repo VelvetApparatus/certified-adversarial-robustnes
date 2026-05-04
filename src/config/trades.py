@@ -4,9 +4,10 @@ import yaml
 
 from src.config._parsers import (
     _parse_dataset, _parse_training, _parse_model, _parse_trades_params,
-    _parse_dataset_split
+    _parse_dataset_split, _parse_normalization
 )
-from src.config.common import ModelConfig, DatasetConfig, TradesParams, TrainingConfig, DatasetSplitConfig
+from src.config.common import ModelConfig, DatasetConfig, TradesParams, TrainingConfig, DatasetSplitConfig, \
+    NormalizeConfig
 
 
 @dataclass
@@ -16,6 +17,7 @@ class TradesConfig:
     model: ModelConfig
     dataset: DatasetConfig
     split: DatasetSplitConfig
+    normalization: NormalizeConfig
 
 
 def load_trades_config(path: str) -> TradesConfig:
@@ -40,4 +42,5 @@ def load_trades_config(path: str) -> TradesConfig:
         model=_parse_model(raw["model"]),
         dataset=_parse_dataset(raw["dataset"]),
         split=_parse_dataset_split(raw["split"]),
+        normalization=_parse_normalization(raw["normalization"]),
     )

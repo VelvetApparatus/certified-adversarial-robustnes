@@ -15,6 +15,13 @@ DeviceName = Literal["cpu", "cuda", "mps", "auto"]
 
 
 @dataclass
+class NormalizeConfig:
+    enabled: bool = False
+    std: torch.Tensor = None
+    mean: torch.Tensor = None
+
+
+@dataclass
 class OptimizerConfig:
     name: OptimizerName = "sgd"
     lr: float = 0.1
@@ -57,14 +64,8 @@ class DatasetConfig:
     train: bool = False
     download: bool = True
     batch_size: int = 128
-    num_workers: int = 0
-    transform: Optional[Compose] = None
+    normalize: OptimizerConfig[NormalizeConfig] = field(default_factory=NormalizeConfig)
 
-
-@dataclass
-class DatasetSplitsConfig:
-    train: Optional[DatasetConfig] = None
-    test: Optional[DatasetConfig] = None
 
 
 @dataclass
@@ -72,8 +73,6 @@ class FGSMAttackConfig:
     name: Literal["fgsm"]
     epsilon: float
     loss_fn: LossName = "cross_entropy"
-    mean: torch.Tensor = None
-    std: torch.Tensor = None
 
 
 @dataclass
@@ -84,8 +83,6 @@ class PGDAttackConfig:
     steps: int
     norm: NormName = "Linf"
     loss_fn: LossName = "cross_entropy"
-    mean: torch.Tensor = None
-    std: torch.Tensor = None
 
 
 @dataclass
@@ -192,8 +189,6 @@ class GaussianTrainingParams:
     noisy_loss_weight: float = 1.0
     noise_ratio: float = 1.0
     normalized_space: bool = True
-    mean: torch.Tensor = None
-    std: torch.Tensor = None
 
 
 @dataclass
@@ -237,3 +232,4 @@ class TradesParams:
     checkpoint: str
     cert_start: int
     cert_num: int
+
