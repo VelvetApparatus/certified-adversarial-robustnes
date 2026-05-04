@@ -98,7 +98,7 @@ class Smooth:
 
                 batch = x.repeat((this_batch_size, 1, 1, 1))
                 noise = torch.randn_like(batch, device=self.device) * self.sigma
-                predictions = self.base_classifier(batch + noise).argmax(1)
+                predictions = self.base_classifier(torch.clamp(batch + noise, 0.0, 1.0)).argmax(1)
                 counts += self._count_arr(predictions.cpu().numpy(), self.num_classes)
             return counts
 

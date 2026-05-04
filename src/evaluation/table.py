@@ -48,8 +48,6 @@ def evaluate(
     fgsm_attack = FGSMAttack(
         eps=fgsm_conf.epsilon,
         loss_fn=fgsm_loss_fn,
-        mean=fgsm_conf.mean,
-        std=fgsm_conf.std,
     )
 
     fgsm_adversary = AdversarialGenerator(
