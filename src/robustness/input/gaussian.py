@@ -22,8 +22,6 @@ class GaussianNoiseGenerator(RobustnessRegularization):
             self,
             sigma: float,
             ratio: float = 1.0,
-            mean: list[float] | tuple[float, ...] | None = None,
-            std: list[float] | tuple[float, ...] | None = None,
             normalized_space: bool = True,
     ):
         super().__init__()
@@ -35,8 +33,6 @@ class GaussianNoiseGenerator(RobustnessRegularization):
 
         self.sigma = sigma
         self.ratio = ratio
-        self.mean = mean
-        self.std = std
         self.normalized_space = normalized_space
 
     def _make_stats(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:

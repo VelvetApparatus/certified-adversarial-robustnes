@@ -2,9 +2,10 @@ from dataclasses import dataclass
 
 import yaml
 
-from src.config.common import TrainingConfig, ModelConfig, DatasetConfig, DatasetSplitConfig, GaussianTrainingParams
+from src.config.common import TrainingConfig, ModelConfig, DatasetConfig, DatasetSplitConfig, GaussianTrainingParams, \
+    NormalizeConfig
 from src.config._parsers import _parse_training, _parse_model, _parse_dataset, _parse_dataset_split, \
-    _parse_gaussian_params
+    _parse_gaussian_params, _parse_normalization
 
 
 @dataclass
@@ -14,6 +15,7 @@ class GaussianConfig:
     model: ModelConfig
     dataset: DatasetConfig
     split: DatasetSplitConfig
+    normalization: NormalizeConfig
 
 
 def load_gaussian_train_config(path: str) -> GaussianConfig:
@@ -37,5 +39,6 @@ def load_gaussian_train_config(path: str) -> GaussianConfig:
         train=_parse_training(raw["train"]),
         model=_parse_model(raw["model"]),
         dataset=_parse_dataset(raw["dataset"]),
-        split=_parse_dataset_split(raw["split"])
+        split=_parse_dataset_split(raw["split"]),
+        normalization=_parse_normalization(raw["normalization"]),
     )

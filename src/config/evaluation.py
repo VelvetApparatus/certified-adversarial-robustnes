@@ -2,8 +2,9 @@ import os.path
 from dataclasses import dataclass
 import yaml
 
-from src.config._parsers import _parse_dataset, _parse_fgsm, _parse_pgd, _parse_evaluation_table_params, _parse_model
-from src.config.common import ModelConfig, DatasetConfig, PGDAttackConfig, FGSMAttackConfig, EvaluationTableParams
+from src.config._parsers import _parse_dataset, _parse_fgsm, _parse_pgd, _parse_evaluation_table_params, _parse_model, _parse_normalization
+from src.config.common import ModelConfig, DatasetConfig, PGDAttackConfig, FGSMAttackConfig, EvaluationTableParams, \
+    NormalizeConfig
 
 
 @dataclass
@@ -22,6 +23,9 @@ class EvaluationExperimentConfig:
 
     # parameters
     params: EvaluationTableParams
+
+    # normalization
+    normalization: NormalizeConfig
 
 
 def load_evaluate_config(path: str) -> EvaluationExperimentConfig:
@@ -49,10 +53,14 @@ def load_evaluate_config(path: str) -> EvaluationExperimentConfig:
     if "params" not in raw:
         raise ValueError("Config must contain 'params'")
 
+    if "normalization" not in raw:
+        raise ValueError("Config must contain 'normalization'")
+
     return EvaluationExperimentConfig(
         model=_parse_model(raw["model"]),
         test_dataset=_parse_dataset(raw["test_dataset"], default_train=False),
         pgd=_parse_pgd(raw["pgd"]),
         fgsm=_parse_fgsm(raw["fgsm"]),
         params=_parse_evaluation_table_params(raw["params"]),
+        normalization=_parse_normalization(raw["normalization"])
     )

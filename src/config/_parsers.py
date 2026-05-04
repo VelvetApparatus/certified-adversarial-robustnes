@@ -2,7 +2,7 @@ from typing import Optional
 
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
     OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, CertificationParams, TradesParams, \
-    EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, MacerTrainingParams
+    EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, MacerTrainingParams, NormalizeConfig
 
 
 def _parse_attack(cfg: dict) -> AttackConfig:
@@ -15,8 +15,6 @@ def _parse_attack(cfg: dict) -> AttackConfig:
             name="fgsm",
             epsilon=cfg["epsilon"],
             loss_fn=cfg.get("loss_fn", "cross_entropy"),
-            mean=cfg.get("mean", None),
-            std=cfg.get("std", None),
         )
 
     if attack_name == "pgd":
@@ -27,8 +25,6 @@ def _parse_attack(cfg: dict) -> AttackConfig:
             steps=cfg["steps"],
             norm=cfg.get("norm", "Linf"),
             loss_fn=cfg.get("loss_fn", "cross_entropy"),
-            mean=cfg.get("mean", None),
-            std=cfg.get("std", None),
         )
 
     if attack_name == "stadv":
@@ -42,6 +38,15 @@ def _parse_attack(cfg: dict) -> AttackConfig:
         )
 
     raise ValueError(f"Unsupported attack name: {attack_name}")
+
+
+def _parse_normalization(cfg: Optional[dict]) -> Optional[NormalizeConfig]:
+    cfg = cfg or {}
+    return NormalizeConfig(
+        enabled=cfg.get("enabled", False),
+        mean=cfg.get("mean", None),
+        std=cfg.get("std", None),
+    )
 
 
 def _parse_dataset(cfg: dict, *, default_train: Optional[bool] = None) -> DatasetConfig:
@@ -172,8 +177,6 @@ def _parse_pgd(cfg: Optional[dict]) -> PGDAttackConfig:
         steps=cfg.get("steps", 100),
         norm=cfg.get("norm", "l2"),
         loss_fn=cfg.get("loss_fn", None),
-        mean=cfg.get("mean", None),
-        std=cfg.get("std", None),
     )
 
 
@@ -183,8 +186,6 @@ def _parse_fgsm(cfg: Optional[dict]) -> FGSMAttackConfig:
         name=cfg.get("name", "fgsm"),
         epsilon=cfg.get("epsilon", 0.01),
         loss_fn=cfg.get("loss_fn", None),
-        mean=cfg.get("mean", None),
-        std=cfg.get("std", None),
     )
 
 
@@ -234,8 +235,6 @@ def _parse_gaussian_params(cfg: Optional[dict]) -> GaussianTrainingParams:
         clean_loss_weight=cfg.get("clean_loss_weight", 1.0),
         noisy_loss_weight=cfg.get("noisy_loss_weight", 1.0),
         noise_ratio=cfg.get("noise_ratio", 0.0),
-        mean=cfg.get("mean", None),
-        std=cfg.get("std", None),
         normalized_space=cfg.get("normalized_space", True),
 
     )

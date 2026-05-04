@@ -34,8 +34,6 @@ def evaluate(
         loss_fn=pgd_loss_fn,
         norm=pgd_conf.norm,
         steps=pgd_conf.steps,
-        mean=pgd_conf.mean,
-        std=pgd_conf.std,
     )
 
     pgd_adversary = AdversarialGenerator(

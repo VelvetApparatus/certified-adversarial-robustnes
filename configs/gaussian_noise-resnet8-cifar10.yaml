@@ -77,4 +77,4 @@ params:
   # CIFAR-10 normalization statistics.
   # Used mainly when normalized_space=false.
   mean: [ 0.4914, 0.4822, 0.4465 ]
-  std: [ 0.2470, 0.2435, 0.2616 ]
+  std:  [0.2023, 0.1994, 0.2010]
