@@ -83,7 +83,7 @@ class Smooth(object):
 
                 batch = x.repeat((this_batch_size, 1, 1, 1))
                 noise = torch.randn_like(batch, device=self.device) * self.sigma
-                predictions = self.base_classifier(batch + noise)
+                predictions = self.base_classifier(torch.clamp(batch + noise, 0.0, 1.0))
                 predictions *= self.beta
                 if self.mode == 'hard' or self.mode == 'both':
                     p_hard = predictions.argmax(1)
