@@ -1,6 +1,7 @@
 model:
   name: resnet18_10
   weights_path: outputs/train/gaussian_noise/cifar10_resnet18/resnet18_10_cifar10_20260502_185827/checkpoints/best.pth
+  pretrained: true
   num_classes: 10
 
 test_dataset:
@@ -36,7 +37,7 @@ params:
   N: 1000
   alpha: 0.001
   beta: 16.0
-  evaluation_dir: data/out/evaluation/resnet18_cifar10_gauss
+  evaluation_dir: data/out/evaluation/resnet18_cifar10
 
 
 

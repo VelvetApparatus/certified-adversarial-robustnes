@@ -1,6 +1,9 @@
 model:
   name: resnet18_10
   weights_path: outputs/train/adversarial_pgd/cifar10_resnet18/resnet18_10_cifar10_20260502_191001/checkpoints/best.pth
+  pretrained: true
+  num_classes: 10
+
 test_dataset:
   name: cifar10
   root_dir: data/dataset/cifar_10
@@ -39,7 +42,7 @@ params:
   N: 1000
   alpha: 0.001
   beta: 1.0
-  evaluation_dir: data/out/evaluation/resnet18_cifar10_adversarial
+  evaluation_dir: data/out/evaluation/resnet18_cifar10
 
 
 

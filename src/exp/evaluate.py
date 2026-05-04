@@ -21,7 +21,7 @@ args = arg_parser.parse_args()
 def main():
     cfg = load_evaluate_config(args.config)
     os.makedirs(cfg.params.evaluation_dir, exist_ok=True)
-    shutil.copy(args.config, os.path.join(cfg.params.evaluation_dir, "config-eval.yaml"))
+    shutil.copy(args.config, os.path.join(cfg.params.evaluation_dir, f"config-eval-{cfg.params.method}.yaml"))
 
     csv_path = os.path.join(cfg.params.evaluation_dir, "eval.csv")
 
@@ -92,7 +92,7 @@ def main():
     test_dataset_cfg = cfg.test_dataset
 
     model = get_model(cfg.model, device).to(device)
-    criterion = get_loss_fn(cfg.model.loss_fn)
+    criterion = get_loss_fn(cfg.params.loss_fn)
 
     test_dataset = get_dataset(test_dataset_cfg)
 
