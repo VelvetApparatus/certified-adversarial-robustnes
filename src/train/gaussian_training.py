@@ -17,8 +17,6 @@ def gaussian_train_one_epoch(
         clean_loss_weight: float = 0.0,
         noisy_loss_weight: float = 1.0,
         noise_ratio: float = 1.0,
-        mean=None,
-        std=None,
         normalized_space: bool = True,
 ):
     model.train()
@@ -26,8 +24,6 @@ def gaussian_train_one_epoch(
     noise_generator = GaussianNoiseGenerator(
         sigma=sigma,
         ratio=noise_ratio,
-        mean=mean,
-        std=std,
         normalized_space=normalized_space,
     )
 
@@ -104,3 +100,5 @@ def gaussian_train_one_epoch(
         metrics["clean_acc"] = total_clean_correct / total_samples
 
     return metrics
+
+

@@ -34,8 +34,6 @@ def evaluate(
         loss_fn=pgd_loss_fn,
         norm=pgd_conf.norm,
         steps=pgd_conf.steps,
-        mean=pgd_conf.mean,
-        std=pgd_conf.std,
     )
 
     pgd_adversary = AdversarialGenerator(
@@ -50,8 +48,6 @@ def evaluate(
     fgsm_attack = FGSMAttack(
         eps=fgsm_conf.epsilon,
         loss_fn=fgsm_loss_fn,
-        mean=fgsm_conf.mean,
-        std=fgsm_conf.std,
     )
 
     fgsm_adversary = AdversarialGenerator(

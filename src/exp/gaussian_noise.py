@@ -19,6 +19,7 @@ def main():
     train(
         name="gaussian_noise_training",
         cfg=cfg.train,
+        norm_cfg=cfg.normalization,
         model_cfg=cfg.model,
         device=device,
         train_dataset_config=cfg.dataset,
@@ -30,8 +31,6 @@ def main():
         clean_loss_weight=cfg.params.clean_loss_weight,
         noisy_loss_weight=cfg.params.noisy_loss_weight,
         noise_ratio=cfg.params.noise_ratio,
-        mean=cfg.params.mean,
-        std=cfg.params.std,
         normalized_space=cfg.params.normalized_space,
     )
 

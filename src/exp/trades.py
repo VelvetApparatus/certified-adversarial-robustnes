@@ -26,6 +26,7 @@ def main():
         "TRADES-training",
         cfg=config.training,
         model_cfg=config.model,
+        norm_cfg=config.normalization,
         device=device,
         train_dataset_config=config.dataset,
         split_config=config.split,

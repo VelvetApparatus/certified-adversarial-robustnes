@@ -23,14 +23,13 @@ def main():
         steps=cfg.pgd.steps,
         loss_fn=get_loss_fn(cfg.training.criterion),
         norm=cfg.pgd.norm,
-        mean=cfg.pgd.mean,
-        std=cfg.pgd.std,
     )
 
     device = get_device()
     train(
         name="aversarial_training_pgd",
         cfg=cfg.training,
+        norm_cfg=cfg.normalization,
         model_cfg=cfg.model,
         device=device,
         train_dataset_config=cfg.dataset,

@@ -6,11 +6,11 @@ import torch
 import wandb
 from tqdm import tqdm
 
-from src.config.common import ModelConfig, DatasetConfig, DatasetSplitConfig, TrainingConfig
+from src.config.common import ModelConfig, DatasetConfig, DatasetSplitConfig, TrainingConfig, NormalizeConfig
 from src.config.secret import WANDB_TOKEN
 from src.db.api import build_train_eval_loaders
 from src.model.api import get_model
-from src.pkg import init_metrics, update_metrics, finalize_metrics, get_optimizer, get_scheduler
+from src.pkg import init_metrics, update_metrics, finalize_metrics, get_optimizer, get_scheduler, InputNormalizer
 
 
 def prefix_metrics(prefix: str, metrics: dict) -> dict:
@@ -63,6 +63,7 @@ def save_checkpoint(
 def train(
         name: str,
         cfg: TrainingConfig,
+        norm_cfg: NormalizeConfig,
         model_cfg: ModelConfig,
         device,
         train_dataset_config: DatasetConfig,
@@ -106,6 +107,13 @@ def train(
 
         start_epoch = checkpoint["epoch"] + 1
         best_metric = checkpoint.get("best_metric", -1.0)
+
+    if norm_cfg.enabled:
+        model = InputNormalizer(
+            model=model,
+            std=norm_cfg.std,
+            mean=norm_cfg.mean,
+        )
 
     use_wandb = init_wandb_if_needed(
         name=name,
@@ -171,7 +179,7 @@ def train(
 
             save_checkpoint(
                 path=best_path,
-                model=model,
+                model=model.model(),
                 optimizer=optimizer,
                 scheduler=scheduler,
                 epoch=epoch,
@@ -187,7 +195,7 @@ def train(
 
         save_checkpoint(
             path=last_path,
-            model=model,
+            model=model.model(),
             optimizer=optimizer,
             scheduler=scheduler,
             epoch=cfg.epochs,

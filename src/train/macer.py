@@ -62,8 +62,10 @@ def macer_loss(
 
     noise = torch.randn_like(x_repeated) * sigma
     x_noisy = x_repeated + noise
+    x_noisy = torch.clamp(x_noisy, 0.0, 1.0)
 
     logits = model(x_noisy)
+
     logits = logits.view(batch_size, gauss_samples, num_classes)
 
     # =====================

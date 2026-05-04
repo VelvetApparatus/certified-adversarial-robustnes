@@ -127,6 +127,7 @@ def trades_train_one_epoch(
             perturb_steps=perturb_steps,
             distance=distance,
         )
+        x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
         model.train()
         optimizer.zero_grad(set_to_none=True)
