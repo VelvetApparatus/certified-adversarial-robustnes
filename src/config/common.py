@@ -15,6 +15,35 @@ DeviceName = Literal["cpu", "cuda", "mps", "auto"]
 
 
 @dataclass
+class LinearScheduleConfig:
+    enabled: bool = False
+    type: str = "linear"
+    start: float = 0.0
+    end: float = 12.0
+    warmup_epochs: int = 0
+    ramp_epochs: int = 20
+
+
+def get_scheduled(base: float, schedule: Optional[LinearScheduleConfig], epoch: int) -> float:
+    if schedule is None or not schedule.enabled:
+        return float(base)
+
+    if schedule.type != "linear":
+        raise ValueError(f"Unsupported schedule type: {schedule.type}")
+
+    if epoch <= schedule.warmup_epochs:
+        return schedule.start
+
+    if schedule.ramp_epochs <= 0:
+        return schedule.end
+
+    progress = (epoch - schedule.warmup_epochs) / schedule.ramp_epochs
+    progress = max(0.0, min(1.0, progress))
+
+    return schedule.start + progress * (schedule.end - schedule.start)
+
+
+@dataclass
 class NormalizeConfig:
     enabled: bool = False
     std: torch.Tensor = None
@@ -65,7 +94,6 @@ class DatasetConfig:
     download: bool = True
     batch_size: int = 128
     normalize: Optional[NormalizeConfig] = field(default_factory=NormalizeConfig)
-
 
 
 @dataclass
@@ -204,12 +232,15 @@ class MacerTrainingParams:
 
     # Softmax sharpening parameter used in MACER robustness term.
     beta: float = 16.0
+    beta_scheduler: Optional[LinearScheduleConfig] = field(default_factory=LinearScheduleConfig)
 
     # Target margin in inverse Gaussian CDF space.
     gamma: float = 8.0
 
     # Weight of MACER robustness regularization.
     lbd: float = 12.0
+    # optional scheduler for lbd to more accurate training
+    lbd_scheduler: Optional[LinearScheduleConfig] = field(default_factory=LinearScheduleConfig)
 
     # Numerical stability epsilon for probabilities before icdf/log.
     eps: float = 1e-6
@@ -233,3 +264,20 @@ class TradesParams:
     cert_start: int
     cert_num: int
 
+
+@dataclass
+class SmoothAdvTrainingParams:
+    sigma: float = 0.25
+    sigma_scheduler: Optional[LinearScheduleConfig] = None
+
+    epsilon: float = 0.25
+    epsilon_scheduler: Optional[LinearScheduleConfig] = None
+
+    step_size: float = 0.025
+    steps: int = 10
+
+    num_noise_vec: int = 2
+    norm: str = "l2"
+
+    train_multi_noise: bool = True
+    clamp_noisy: bool = True

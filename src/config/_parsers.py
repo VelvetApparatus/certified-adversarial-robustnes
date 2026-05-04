@@ -2,7 +2,21 @@ from typing import Optional
 
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
     OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, CertificationParams, TradesParams, \
-    EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, MacerTrainingParams, NormalizeConfig
+    EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, MacerTrainingParams, NormalizeConfig, \
+    LinearScheduleConfig, SmoothAdvTrainingParams
+
+
+def _parse_linear_schedule(cfg: Optional[dict]) -> LinearScheduleConfig:
+    cfg = cfg or {}
+    return LinearScheduleConfig(
+        enabled=cfg.get("enabled", False),
+        type=cfg.get("type", "linear"),
+        start=cfg.get("start", 0.0),
+        end=cfg.get("end", 1.0),
+        warmup_epochs=cfg.get("warmup_epochs", 0),
+        ramp_epochs=cfg.get("ramp_epochs", 0),
+
+    )
 
 
 def _parse_attack(cfg: dict) -> AttackConfig:
@@ -138,11 +152,12 @@ def _parse_macer_params(cfg: dict) -> MacerTrainingParams:
         gauss_samples=cfg.get("gauss_samples", 16),
         sigma=cfg.get("sigma", 0.25),
         num_classes=cfg.get("num_classes", 10),
-        beta=cfg.get("beta", 16.0),
+        beta=cfg.get("beta", {}).get("value", 16.0),
+        beta_scheduler=_parse_linear_schedule(cfg.get("beta", {}).get("scheduler", None)),
         gamma=cfg.get("gamma", 8.0),
-        lbd=cfg.get("lbd", 12.0),
+        lbd=cfg.get("lbd", {}).get("value", 12.0),
+        lbd_scheduler=_parse_linear_schedule(cfg.get("lbd", {}).get("scheduler", None)),
         eps=cfg.get("eps", 1e-6),
-
     )
 
 
@@ -233,7 +248,57 @@ def _parse_gaussian_params(cfg: Optional[dict]) -> GaussianTrainingParams:
         sigma=cfg.get("sigma", 0.01),
         clean_loss_weight=cfg.get("clean_loss_weight", 1.0),
         noisy_loss_weight=cfg.get("noisy_loss_weight", 1.0),
-        noise_ratio=cfg.get("noise_ratio", 0.0),
+        noise_ratio=cfg.get("noise_ratio", 1.0),
         normalized_space=cfg.get("normalized_space", True),
 
+    )
+
+
+def _parse_value_with_scheduler(
+        cfg: dict,
+        key: str,
+        default_value: float,
+):
+    raw = cfg.get(key, default_value)
+
+    if isinstance(raw, (int, float)):
+        return float(raw), None
+
+    if isinstance(raw, dict):
+        value = float(raw.get("value", default_value))
+        scheduler = _parse_linear_schedule(raw.get("scheduler", None))
+        return value, scheduler
+
+    raise TypeError(
+        f"params.{key} must be either a number or a dict with "
+        f"'value' and optional 'scheduler'. Got {type(raw)}"
+    )
+
+
+def _parse_smooth_adv_params(cfg: dict) -> SmoothAdvTrainingParams:
+    cfg = cfg or {}
+
+    sigma, sigma_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="sigma",
+        default_value=0.25,
+    )
+
+    epsilon, epsilon_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="epsilon",
+        default_value=0.25,
+    )
+
+    return SmoothAdvTrainingParams(
+        sigma=sigma,
+        sigma_scheduler=sigma_scheduler,
+        epsilon=epsilon,
+        epsilon_scheduler=epsilon_scheduler,
+        step_size=float(cfg.get("step_size", 0.025)),
+        steps=int(cfg.get("steps", 10)),
+        num_noise_vec=int(cfg.get("num_noise_vec", 2)),
+        norm=cfg.get("norm", "l2"),
+        train_multi_noise=bool(cfg.get("train_multi_noise", True)),
+        clamp_noisy=bool(cfg.get("clamp_noisy", True)),
     )

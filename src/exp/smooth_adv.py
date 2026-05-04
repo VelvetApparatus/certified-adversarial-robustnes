@@ -1,0 +1,32 @@
+import argparse
+
+from src.config.smooth_adv import load_smooth_adv_train_config
+from src.train.common import train
+from src.train.smooth_adv import smooth_adv_train_one_epoch
+from src.pkg import get_device, get_loss_fn
+
+
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument("--config", type=str, required=True)
+args = arg_parser.parse_args()
+
+def main():
+    config = load_smooth_adv_train_config(args.config)
+    device = get_device()
+
+    train(
+        name="smooth_adv",
+        cfg=config.training,
+        norm_cfg=config.normalization,
+        model_cfg=config.model,
+        train_dataset_config=config.dataset,
+        split_config=config.split,
+        device=device,
+        loss_fn=get_loss_fn(config.training.criterion),
+        train_epoch_fn=smooth_adv_train_one_epoch,
+        params=config.params,
+    )
+
+
+if __name__ == "__main__":
+    main()

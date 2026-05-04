@@ -29,13 +29,7 @@ def main():
         loss_fn=loss_fn,
         train_epoch_fn=macer_train_one_epoch,
 
-        gauss_samples=cfg.params.gauss_samples,
-        sigma=cfg.params.sigma,
-        num_classes=cfg.params.num_classes,
-        beta=cfg.params.beta,
-        gamma=cfg.params.gamma,
-        lbd=cfg.params.lbd,
-        eps=cfg.params.eps,
+        params=cfg.params,
     )
 
 

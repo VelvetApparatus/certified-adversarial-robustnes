@@ -1,9 +1,12 @@
 # src/train/macer.py
+from typing import Optional
 
 import torch
 import torch.nn.functional as F
 from torch.distributions import Normal
 from tqdm import tqdm
+
+from src.config.common import MacerTrainingParams, get_scheduled
 
 
 def _repeat_for_gaussian_samples(
@@ -151,13 +154,7 @@ def macer_train_one_epoch(
         optimizer,
         device,
         epoch: int,
-        gauss_samples: int,
-        sigma: float,
-        num_classes: int,
-        beta: float,
-        gamma: float,
-        lbd: float,
-        eps: float = 1e-6,
+        params: MacerTrainingParams,
 ):
     """
     One MACER training epoch.
@@ -197,18 +194,21 @@ def macer_train_one_epoch(
 
         optimizer.zero_grad(set_to_none=True)
 
+        lbd_eff = get_scheduled(params.lbd, params.lbd_scheduler, epoch)
+        beta_eff = get_scheduled(params.beta, params.beta_scheduler, epoch)
+
         loss, batch_metrics = macer_loss(
             model=model,
             x=x,
             y=y,
             normal=normal,
-            gauss_samples=gauss_samples,
-            sigma=sigma,
-            num_classes=num_classes,
-            beta=beta,
-            gamma=gamma,
-            lbd=lbd,
-            eps=eps,
+            gauss_samples=params.gauss_samples,
+            sigma=params.sigma,
+            num_classes=params.num_classes,
+            beta=beta_eff,
+            gamma=params.gamma,
+            lbd=lbd_eff,
+            eps=params.eps,
         )
 
         loss.backward()
