@@ -23,8 +23,6 @@ def main():
         steps=cfg.pgd.steps,
         loss_fn=get_loss_fn(cfg.training.criterion),
         norm=cfg.pgd.norm,
-        mean=cfg.pgd.mean,
-        std=cfg.pgd.std,
     )
 
     device = get_device()

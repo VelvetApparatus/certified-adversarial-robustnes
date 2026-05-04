@@ -37,7 +37,7 @@ def trades_loss(model,
             grad = torch.autograd.grad(loss_kl, [x_adv])[0]
             x_adv = x_adv.detach() + step_size * torch.sign(grad.detach())
             x_adv = torch.min(torch.max(x_adv, x_natural - epsilon), x_natural + epsilon)
-            x_adv = clamp_normalized_cifar10(x_adv)
+            x_adv = torch.clamp(x_adv)
     elif distance == 'l_2':
         delta = 0.001 * torch.randn(x_natural.shape).detach()
         delta = Variable(delta.data, requires_grad=True)
@@ -71,7 +71,7 @@ def trades_loss(model,
         x_adv = torch.clamp(x_adv, 0.0, 1.0)
     model.train()
 
-    x_adv = clamp_normalized_cifar10(x_adv).detach()
+    x_adv = torch.clamp(x_adv).detach()
 
     logits = model(x_natural)
     loss_natural = F.cross_entropy(logits, y)
@@ -83,23 +83,3 @@ def trades_loss(model,
 
     loss = loss_natural + beta * loss_robust
     return loss
-
-
-# todo make normal
-def clamp_normalized_cifar10(x):
-    mean = torch.tensor(
-        [0.4914, 0.4822, 0.4465],
-        device=x.device,
-        dtype=x.dtype,
-    ).view(1, 3, 1, 1)
-
-    std = torch.tensor(
-        [0.2470, 0.2435, 0.2616],
-        device=x.device,
-        dtype=x.dtype,
-    ).view(1, 3, 1, 1)
-
-    lower = (0.0 - mean) / std
-    upper = (1.0 - mean) / std
-
-    return torch.max(torch.min(x, upper), lower)

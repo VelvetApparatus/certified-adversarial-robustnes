@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 import torch
 
-from src.pkg import set_seed, get_device
+from src.pkg import set_seed, get_device, InputNormalizer
 from src.model.api import get_model
 from src.db.api import get_dataset
 from src.config.certify import load_certification_config
@@ -28,6 +28,14 @@ def main():
 
     model = get_model(cfg=config.model, device=device)
     model.to(device)
+
+    if config.normalization.enabled:
+        model = InputNormalizer(
+            model=model,
+            std=config.normalization.std,
+            mean=config.normalization.mean,
+        )
+
     model.eval()
 
     smoothed = Smooth(

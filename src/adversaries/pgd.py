@@ -16,14 +16,12 @@ class PGD(Adversary):
     """
 
     def __init__(
-        self,
-        epsilon: float,
-        alpha: float,
-        steps: int,
-        loss_fn: nn.Module,
-        norm: Literal["Linf", "l2"] = "Linf",
-        mean=None,
-        std=None,
+            self,
+            epsilon: float,
+            alpha: float,
+            steps: int,
+            loss_fn: nn.Module,
+            norm: Literal["Linf", "l2"] = "Linf",
     ):
         super(PGD, self).__init__(
             name="PGD",
@@ -33,8 +31,6 @@ class PGD(Adversary):
                 "alpha": alpha,
                 "steps": steps,
                 "norm": norm,
-                "mean": mean,
-                "std": std,
             },
         )
 
@@ -42,8 +38,6 @@ class PGD(Adversary):
         self.alpha = alpha
         self.steps = steps
         self.norm = norm
-        self.mean = mean
-        self.std = std
 
     def __repr__(self):
         return (
@@ -62,8 +56,8 @@ class PGD(Adversary):
         X_orig = X.detach().clone()
         X_adv = X_orig.clone()
 
-        eps = self.scale_for_normalized_input(self.epsilon, X)
-        alpha = self.scale_for_normalized_input(self.alpha, X)
+        eps = self.epsilon
+        alpha = self.alpha
 
         for _ in range(self.steps):
             X_adv = X_adv.detach()
@@ -93,7 +87,7 @@ class PGD(Adversary):
                 delta = self.l2_projection(delta, self.epsilon)
 
             X_adv = X_orig + delta
-            X_adv = self.clamp_input(X_adv)
+            X_adv = torch.clamp(X_adv, 0.0, 1.0)
 
         return X_adv.detach()
 
@@ -117,32 +111,3 @@ class PGD(Adversary):
         grad_flat = grad_flat / (norms + 1e-12)
 
         return grad_flat.view_as(grad)
-
-    def clamp_input(self, x):
-        if self.mean is None or self.std is None:
-            return torch.clamp(x, 0.0, 1.0)
-
-        mean = self.as_channel_tensor(self.mean, x)
-        std = self.as_channel_tensor(self.std, x)
-
-        lower = (0.0 - mean) / std
-        upper = (1.0 - mean) / std
-
-        return torch.max(torch.min(x, upper), lower)
-
-    def scale_for_normalized_input(self, value, x):
-        if self.mean is None or self.std is None:
-            return value
-
-        std = self.as_channel_tensor(self.std, x)
-
-        return value / std
-
-    @staticmethod
-    def as_channel_tensor(value, x):
-        if isinstance(value, torch.Tensor):
-            tensor = value.to(device=x.device, dtype=x.dtype)
-        else:
-            tensor = torch.tensor(value, device=x.device, dtype=x.dtype)
-
-        return tensor.view(1, -1, 1, 1)

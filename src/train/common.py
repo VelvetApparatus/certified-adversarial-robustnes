@@ -6,11 +6,11 @@ import torch
 import wandb
 from tqdm import tqdm
 
-from src.config.common import ModelConfig, DatasetConfig, DatasetSplitConfig, TrainingConfig
+from src.config.common import ModelConfig, DatasetConfig, DatasetSplitConfig, TrainingConfig, NormalizeConfig
 from src.config.secret import WANDB_TOKEN
 from src.db.api import build_train_eval_loaders
 from src.model.api import get_model
-from src.pkg import init_metrics, update_metrics, finalize_metrics, get_optimizer, get_scheduler
+from src.pkg import init_metrics, update_metrics, finalize_metrics, get_optimizer, get_scheduler, InputNormalizer
 
 
 def prefix_metrics(prefix: str, metrics: dict) -> dict:
@@ -63,6 +63,7 @@ def save_checkpoint(
 def train(
         name: str,
         cfg: TrainingConfig,
+        norm_cfg: NormalizeConfig,
         model_cfg: ModelConfig,
         device,
         train_dataset_config: DatasetConfig,
@@ -72,6 +73,13 @@ def train(
         **kwargs,
 ):
     model = get_model(model_cfg, device).to(device)
+
+    if norm_cfg.enabled:
+        model = InputNormalizer(
+            model=model,
+            std=norm_cfg.std,
+            mean=norm_cfg.mean,
+        )
 
     train_loader, eval_loader, train_dataset, eval_dataset = build_train_eval_loaders(
         dataset_cfg=train_dataset_config,

@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 import yaml
 
-from src.config._parsers import _parse_dataset, _parse_certification_params
-from src.config.common import ModelConfig, DatasetConfig, CertificationParams
+from src.config._parsers import _parse_dataset, _parse_certification_params, _parse_normalization
+from src.config.common import ModelConfig, DatasetConfig, CertificationParams, NormalizeConfig
 
 
 @dataclass
@@ -11,6 +11,7 @@ class CertificationConfig:
     model: ModelConfig
     dataset: DatasetConfig
     certification: CertificationParams
+    normalization: NormalizeConfig
 
 
 def load_certification_config(path: str) -> CertificationConfig:
@@ -26,6 +27,8 @@ def load_certification_config(path: str) -> CertificationConfig:
         raise ValueError("Config must contain 'model'")
     if "dataset" not in raw:
         raise ValueError("Config must contain 'dataset'")
+    if "normalization" not in raw:
+        raise ValueError("Config must contain 'normalization'")
 
     model_cfg = ModelConfig(
         name=raw["model"]["name"],
@@ -38,4 +41,5 @@ def load_certification_config(path: str) -> CertificationConfig:
         model=model_cfg,
         dataset=dataset_cfg,
         certification=certification_params,
+        normalization=_parse_normalization(raw["normalization"],)
     )
