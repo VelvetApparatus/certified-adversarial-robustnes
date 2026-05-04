@@ -47,7 +47,7 @@ def load_adversarial_training_config(path: str) -> AdversarialTrainingConfig:
         raise ValueError("Config must contain 'pgd'")
     if "fgsm" not in raw:
         raise ValueError("Config must contain 'fgsm'")
-    if "normalize" not in raw:
+    if "normalization" not in raw:
         raise ValueError("Config must contain 'normalization'")
 
     return AdversarialTrainingConfig(

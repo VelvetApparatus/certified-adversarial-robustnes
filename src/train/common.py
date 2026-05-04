@@ -50,15 +50,16 @@ def save_checkpoint(
         epoch: int,
         best_metric: float,
 ):
+    net = model.model if isinstance(model, InputNormalizer) else model
+
     state = {
-        "net": model.state_dict(),
+        "net": net.state_dict(),
         "optimizer": optimizer.state_dict(),
         "scheduler": scheduler.state_dict() if scheduler is not None else None,
         "epoch": epoch,
         "best_metric": best_metric,
     }
     torch.save(state, path)
-
 
 def train(
         name: str,
@@ -114,6 +115,7 @@ def train(
             std=norm_cfg.std,
             mean=norm_cfg.mean,
         )
+        model = model.to(device)
 
     use_wandb = init_wandb_if_needed(
         name=name,
@@ -179,7 +181,7 @@ def train(
 
             save_checkpoint(
                 path=best_path,
-                model=model.model(),
+                model=model,
                 optimizer=optimizer,
                 scheduler=scheduler,
                 epoch=epoch,
@@ -195,7 +197,7 @@ def train(
 
         save_checkpoint(
             path=last_path,
-            model=model.model(),
+            model=model,
             optimizer=optimizer,
             scheduler=scheduler,
             epoch=cfg.epochs,
@@ -290,7 +292,7 @@ def init_wandb_if_needed(
             },
             "train_dataset": {
                 "batch_size": dataset_cfg.batch_size,
-                "num_workers": dataset_cfg.num_workers,
+                # "num_workers": dataset_cfg.num_workers,
             },
         },
     )

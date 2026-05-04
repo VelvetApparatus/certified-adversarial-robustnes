@@ -98,6 +98,7 @@ def main():
             std=cfg.normalization.std,
             mean=cfg.normalization.mean,
         )
+        model = model.to(device)
     criterion = get_loss_fn(cfg.params.loss_fn)
 
     test_dataset = get_dataset(test_dataset_cfg)

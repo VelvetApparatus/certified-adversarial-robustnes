@@ -35,6 +35,7 @@ def main():
             std=config.normalization.std,
             mean=config.normalization.mean,
         )
+        model = model.to(device)
 
     model.eval()
 
