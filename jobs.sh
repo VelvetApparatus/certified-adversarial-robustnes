@@ -35,8 +35,9 @@ run_job() {
 
 # run_job "adversarial_train" "./cmd/adversarial_training.sh"
 # run_job "gaussian_training" "./cmd/gaussian_training.sh"
-# run_job "macer" "./cmd/macer.sh"
-run_job "trades" "./cmd/trades.sh"
+run_job "macer" "./cmd/macer.sh"
+run_job "smooth_adv" "./cmd/smooth_adv.sh"
+# run_job "trades" "./cmd/trades.sh"
 # run_job "evaluation" "./cmd/evaluation.sh"
 
 echo "All training jobs finished successfully."

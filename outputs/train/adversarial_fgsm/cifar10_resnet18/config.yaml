@@ -7,18 +7,18 @@ model:
 
 dataset:
   name: cifar10
-  root_dir: ./data/dataset/cifar_10
+  root_dir: data/dataset/cifar_10
   train: true
-  download: false
+  download: true
   batch_size: 128
-  num_workers: 4
+  num_workers: 2
 
 split:
   enabled: true
   eval_ratio: 0.1
-  eval_size: null
   seed: 42
   shuffle: true
+  eval_size: null
 
 training:
   enabled: true
@@ -27,7 +27,7 @@ training:
   criterion: cross_entropy
 
   checkpoint: null
-  save_dir: ./outputs/train/macer/cifar10_resnet18
+  save_dir: ./outputs/train/adversarial_fgsm/cifar10_resnet18
   save_best: true
   save_last: true
   metric_for_best_model: eval_acc
@@ -50,41 +50,32 @@ training:
     enabled: true
     project: certified-robustness
     entity: null
-    run_name: macer_cifar10_resnet18
+    run_name: adversarial_pgd_cifar10_resnet18_train
     tags:
-      - macer
-      - randomized-smoothing
+      - adversarial-training
+      - pgd
       - cifar10
       - resnet18
 
-params:
-  gauss_samples: 16
-  sigma: 0.25
-  num_classes: 10
-  beta:
-    value: 8.0
-    scheduler:
-      enabled: true
-      type: linear
-      start: 1.0
-      end: 8.0
-      warmup_epochs: 10
-      ramp_epochs: 30
+pgd:
+  name: pgd
 
-  gamma: 8.0
+  # For CIFAR-10 in [0,1] space:
+  # epsilon = 8/255 ≈ 0.031
+  # alpha   = 2/255 ≈ 0.007
+  epsilon: 0.031
+  alpha: 0.007
+  steps: 10
 
-  lbd:
-    value: 6.0
-    scheduler:
-      enabled: true
-      type: linear
-      start: 0.0
-      end: 6.0
-      warmup_epochs: 15
-      ramp_epochs: 40
+  # Your NormName currently supports "Linf" and "l2".
+  norm: l2
 
-  eps: 0.000001
+  loss_fn: cross_entropy
 
+fgsm:
+  name: fgsm
+  epsilon: 0.031
+  loss_fn: cross_entropy
 
 normalization:
   enabled: true
