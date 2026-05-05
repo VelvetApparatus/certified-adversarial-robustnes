@@ -62,7 +62,7 @@ params:
   sigma: 0.25
 
   # Weight of CE loss on clean inputs.
-  clean_loss_weight: 0.0
+  clean_loss_weight: 0.5
 
   # Weight of CE loss on noisy inputs.
   noisy_loss_weight: 1.0
@@ -72,7 +72,7 @@ params:
 
   # If true, noise is added directly in normalized tensor space.
   # If false, implementation should unnormalize -> add noise -> clamp [0,1] -> normalize.
-  normalized_space: true
+  normalized_space: false
 
 
 normalization:
