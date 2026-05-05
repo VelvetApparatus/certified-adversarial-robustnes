@@ -13,9 +13,12 @@ def get_dataset(
         raise Exception("root_dir should be provided with download=True")
 
     if cfg.name == "cifar10":
-        transforms_list = [transforms.ToTensor()]
 
-        transform = transforms.Compose(transforms_list)
+        transform = transforms.Compose([
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+        ])
 
         return datasets.CIFAR10(
             root=cfg.root_dir,
