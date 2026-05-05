@@ -1,6 +1,3 @@
-# src/train/macer.py
-from typing import Optional
-
 import torch
 import torch.nn.functional as F
 from torch.distributions import Normal
@@ -19,13 +16,12 @@ def _repeat_for_gaussian_samples(
     into:
         [B * gauss_samples, C, H, W]
     """
-
     batch_size = x.size(0)
 
     return (
         x.unsqueeze(1)
         .repeat(1, gauss_samples, 1, 1, 1)
-        .view(batch_size * gauss_samples, *x.shape[1:])
+        .reshape(batch_size * gauss_samples, *x.shape[1:])
     )
 
 
@@ -52,7 +48,14 @@ def macer_loss(
         NLL over averaged softmax probabilities from noisy samples.
 
     robustness_loss:
-        hinge penalty based on top-2 class probabilities and inverse Gaussian CDF.
+        Hinge penalty based on:
+            margin = Phi^{-1}(p_y) - Phi^{-1}(max_{j != y} p_j)
+
+        gamma:
+            Target margin in inverse Gaussian CDF space, not radius space.
+
+        certified_radius proxy:
+            radius = sigma / 2 * margin
     """
 
     batch_size = x.size(0)
@@ -63,19 +66,20 @@ def macer_loss(
         gauss_samples=gauss_samples,
     )
 
+    # Noise is added in pixel-space [0, 1].
+    # InputNormalizer, if used, should live inside model.
     noise = torch.randn_like(x_repeated) * sigma
     x_noisy = x_repeated + noise
     x_noisy = torch.clamp(x_noisy, 0.0, 1.0)
 
     logits = model(x_noisy)
-
-    logits = logits.view(batch_size, gauss_samples, num_classes)
+    logits = logits.reshape(batch_size, gauss_samples, num_classes)
 
     # =====================
     # Classification loss
     # =====================
     probs = F.softmax(logits, dim=2).mean(dim=1)
-    probs = probs.clamp(eps, 1.0)
+    probs = probs.clamp(min=eps)
 
     log_probs = torch.log(probs)
 
@@ -83,69 +87,139 @@ def macer_loss(
         input=log_probs,
         target=y,
         reduction="sum",
-    )
+    ) / batch_size
+
+    # Smoothed/noisy prediction from averaged probabilities
+    smoothed_preds = probs.argmax(dim=1)
+    correct_mask = smoothed_preds.eq(y)
 
     # =====================
     # Robustness loss
     # =====================
     beta_logits = logits * beta
     beta_probs = F.softmax(beta_logits, dim=2).mean(dim=1)
-    beta_probs = beta_probs.clamp(eps, 1.0 - eps)
+    beta_probs = beta_probs.clamp(min=eps, max=1.0 - eps)
 
-    top2_scores, top2_indices = torch.topk(
-        beta_probs,
-        k=2,
+    # p_y: probability of the true class
+    p_y = beta_probs.gather(
         dim=1,
+        index=y.reshape(-1, 1),
+    ).squeeze(1)
+
+    # p_other: max probability among all incorrect classes
+    other_probs = beta_probs.clone()
+    other_probs.scatter_(
+        dim=1,
+        index=y.reshape(-1, 1),
+        value=-1.0,
     )
 
-    correct_mask = top2_indices[:, 0].eq(y)
+    p_other = other_probs.max(dim=1).values
+    p_other = p_other.clamp(min=eps, max=1.0 - eps)
 
-    if correct_mask.sum().item() == 0:
-        robustness_loss = torch.zeros(
-            (),
-            dtype=x.dtype,
-            device=x.device,
-        )
-    else:
-        p_a = top2_scores[correct_mask, 0].clamp(eps, 1.0 - eps)
-        p_b = top2_scores[correct_mask, 1].clamp(eps, 1.0 - eps)
+    if correct_mask.any():
+        p_a = p_y[correct_mask].clamp(min=eps, max=1.0 - eps)
+        p_b = p_other[correct_mask].clamp(min=eps, max=1.0 - eps)
 
         margin = normal.icdf(p_a) - normal.icdf(p_b)
 
         valid_mask = torch.isfinite(margin)
 
-        if valid_mask.sum().item() == 0:
+        if valid_mask.any():
+            margin_valid = margin[valid_mask]
+
+            # gamma is in inverse-CDF-margin space.
+            robustness_loss = (
+                torch.clamp(gamma - margin_valid, min=0.0).sum()
+                * sigma
+                / 2.0
+            ) / batch_size
+
+            radius_valid = sigma * margin_valid / 2.0
+        else:
             robustness_loss = torch.zeros(
                 (),
                 dtype=x.dtype,
                 device=x.device,
             )
-        else:
-            margin = margin[valid_mask]
-
-            robustness_loss = (
-                    torch.clamp(gamma - margin, min=0.0).sum()
-                    * sigma
-                    / 2.0
-            )
+            margin_valid = torch.empty(0, dtype=x.dtype, device=x.device)
+            radius_valid = torch.empty(0, dtype=x.dtype, device=x.device)
+    else:
+        robustness_loss = torch.zeros(
+            (),
+            dtype=x.dtype,
+            device=x.device,
+        )
+        margin_valid = torch.empty(0, dtype=x.dtype, device=x.device)
+        radius_valid = torch.empty(0, dtype=x.dtype, device=x.device)
 
     loss = classification_loss + lbd * robustness_loss
-    loss = loss / batch_size
 
+    # =====================
+    # Metrics / diagnostics
+    # =====================
     with torch.no_grad():
-        preds = probs.argmax(dim=1)
-        clean_correct = preds.eq(y).sum().item()
+        clean_logits = model(x)
+        clean_preds = clean_logits.argmax(dim=1)
+        clean_correct = clean_preds.eq(y).sum().item()
+
+        smoothed_correct = correct_mask.sum().item()
+
+        target_radius = sigma * gamma / 2.0
+
+        if margin_valid.numel() > 0:
+            margin_mean = margin_valid.mean().item()
+            margin_min = margin_valid.min().item()
+            margin_max = margin_valid.max().item()
+
+            radius_mean = radius_valid.mean().item()
+            radius_min = radius_valid.min().item()
+            radius_max = radius_valid.max().item()
+        else:
+            margin_mean = 0.0
+            margin_min = 0.0
+            margin_max = 0.0
+
+            radius_mean = 0.0
+            radius_min = 0.0
+            radius_max = 0.0
+
+        p_y_mean = p_y.mean().item()
+        p_other_mean = p_other.mean().item()
 
     metrics = {
         "loss": loss.detach().item(),
-        "classification_loss": (classification_loss / batch_size).detach().item(),
-        "robustness_loss": (robustness_loss / batch_size).detach().item(),
-        "acc": clean_correct / batch_size,
-        "macer_acc": clean_correct / batch_size,
+
+        "classification_loss": classification_loss.detach().item(),
+        "robustness_loss": robustness_loss.detach().item(),
+
+        # Clean deterministic accuracy
+        "clean_acc": clean_correct / batch_size,
+
+        # Accuracy of averaged noisy probabilities
+        "macer_acc": smoothed_correct / batch_size,
+        "smoothed_acc": smoothed_correct / batch_size,
+
+        # Fraction of samples that actually received robustness penalty
+        "robust_active_frac": smoothed_correct / batch_size,
+
+        # Probability diagnostics
+        "p_y_mean": p_y_mean,
+        "p_other_mean": p_other_mean,
+
+        # Margin diagnostics
+        "margin_mean": margin_mean,
+        "margin_min": margin_min,
+        "margin_max": margin_max,
+
+        # Radius proxy diagnostics
+        "radius_mean": radius_mean,
+        "radius_min": radius_min,
+        "radius_max": radius_max,
+        "target_radius": target_radius,
     }
 
     return loss, metrics
-
 
 def macer_train_one_epoch(
         model,
@@ -156,17 +230,6 @@ def macer_train_one_epoch(
         epoch: int,
         params: MacerTrainingParams,
 ):
-    """
-    One MACER training epoch.
-
-    This function follows the same interface as other train_epoch_fn methods:
-        model, train_loader, criterion, optimizer, device, epoch, **kwargs
-
-    Note:
-        criterion is accepted for compatibility with the common train loop,
-        but MACER uses its own NLL-style classification term.
-    """
-
     model.train()
 
     normal = Normal(
@@ -177,8 +240,14 @@ def macer_train_one_epoch(
     total_loss = 0.0
     total_classification_loss = 0.0
     total_robustness_loss = 0.0
-    total_correct = 0
+
+    total_clean_correct = 0.0
+    total_macer_correct = 0.0
     total_samples = 0
+
+    total_margin_mean = 0.0
+    total_radius_mean = 0.0
+    total_robust_active = 0.0
 
     progress = tqdm(
         train_loader,
@@ -219,19 +288,38 @@ def macer_train_one_epoch(
         total_loss += batch_metrics["loss"] * batch_size
         total_classification_loss += batch_metrics["classification_loss"] * batch_size
         total_robustness_loss += batch_metrics["robustness_loss"] * batch_size
-        total_correct += int(batch_metrics["acc"] * batch_size)
+
+        total_clean_correct += batch_metrics["clean_acc"] * batch_size
+        total_macer_correct += batch_metrics["macer_acc"] * batch_size
+
+        total_margin_mean += batch_metrics["margin_mean"] * batch_size
+        total_radius_mean += batch_metrics["radius_mean"] * batch_size
+        total_robust_active += batch_metrics["robust_active_frac"] * batch_size
 
         progress.set_postfix(
             loss=f"{total_loss / total_samples:.4f}",
             cl=f"{total_classification_loss / total_samples:.4f}",
             rl=f"{total_robustness_loss / total_samples:.4f}",
-            acc=f"{total_correct / total_samples:.4f}",
+            clean_acc=f"{total_clean_correct / total_samples:.4f}",
+            macer_acc=f"{total_macer_correct / total_samples:.4f}",
+            radius=f"{total_radius_mean / total_samples:.4f}",
+            active=f"{total_robust_active / total_samples:.4f}",
         )
 
     return {
         "loss": total_loss / total_samples,
         "classification_loss": total_classification_loss / total_samples,
         "robustness_loss": total_robustness_loss / total_samples,
-        "acc": total_correct / total_samples,
-        "macer_acc": total_correct / total_samples,
+
+        "clean_acc": total_clean_correct / total_samples,
+        "acc": total_clean_correct / total_samples,
+
+        "macer_acc": total_macer_correct / total_samples,
+        "smoothed_acc": total_macer_correct / total_samples,
+
+        "margin_mean": total_margin_mean / total_samples,
+        "radius_mean": total_radius_mean / total_samples,
+        "robust_active_frac": total_robust_active / total_samples,
+
+        "target_radius": params.sigma * params.gamma / 2.0,
     }
