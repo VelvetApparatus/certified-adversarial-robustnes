@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: data/models/resnet/resnet_18_cifar_10/resnet18_cifar10_full.pth
+  weights_path: outputs/train/adversarial_pgd/cifar10_resnet18/resnet18_10_cifar10_20260502_191001/checkpoints/best.pth
   pretrained: true
   num_classes: 10
 
@@ -12,20 +12,25 @@ test_dataset:
 
 fgsm:
   epsilon: 0.03137
-  norm: Linf
   loss_fn: cross_entropy
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2023, 0.1994, 0.2010 ]
 
 pgd:
   epsilon: 0.03137
   alpha: 0.00784
-  steps: 20
+  steps: 10
   norm: Linf
   loss_fn: cross_entropy
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2023, 0.1994, 0.2010 ]
+
 
 
 params:
-  method: baseline-evaluation
-  comment: resnet18_10 cifar10 baseline clean evaluation
+
+  method: adversarial-training
+  comment: resnet18_10 cifar10 adversarial training evaluation
   loss_fn: cross_entropy
 
   # used for noisy evaluation and randomized smoothing certification
@@ -40,8 +45,5 @@ params:
   evaluation_dir: data/out/evaluation/resnet18_cifar10
 
 
-normalization:
-  enabled: true
-  mean: [ 0.4914, 0.4822, 0.4465 ]
-  std: [ 0.2470, 0.2435, 0.2616 ]
+
 
