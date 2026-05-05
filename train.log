@@ -1,0 +1,22 @@
+nohup: ignoring input
+============================================================
+Starting: macer
+Script:   ./cmd/macer.sh
+Log:      logs/train_all/20260504_151506/macer.log
+Time:     Mon May  4 15:15:06 UTC 2026
+============================================================
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/root/certified-adversarial-robustnes/src/exp/macer.py", line 37, in <module>
+    main()
+  File "/root/certified-adversarial-robustnes/src/exp/macer.py", line 16, in main
+    cfg = load_macer_training_config(args.config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/certified-adversarial-robustnes/src/config/macer.py", line 34, in load_macer_training_config
+    params=_parse_macer_params(raw.get("params")),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/certified-adversarial-robustnes/src/config/_parsers.py", line 155, in _parse_macer_params
+    beta=cfg.get("beta", {}).get("value", 16.0),
+         ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'float' object has no attribute 'get'
