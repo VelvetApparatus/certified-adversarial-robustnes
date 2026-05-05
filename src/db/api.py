@@ -14,11 +14,13 @@ def get_dataset(
 
     if cfg.name == "cifar10":
 
-        transform = transforms.Compose([
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-        ])
+        transform = transforms.Compose([transforms.ToTensor()])
+        if cfg.train:
+            transform = transforms.Compose([
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+            ])
 
         return datasets.CIFAR10(
             root=cfg.root_dir,
