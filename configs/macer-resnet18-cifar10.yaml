@@ -61,30 +61,30 @@ params:
   gauss_samples: 16
   sigma: 0.25
   num_classes: 10
+
   beta:
-    value: 8.0
+    value: 4.0
     scheduler:
       enabled: true
       type: linear
       start: 1.0
-      end: 8.0
+      end: 4.0
       warmup_epochs: 10
       ramp_epochs: 30
 
-  gamma: 8.0
+  gamma: 4.0
 
   lbd:
-    value: 6.0
+    value: 2.0
     scheduler:
       enabled: true
       type: linear
       start: 0.0
-      end: 6.0
-      warmup_epochs: 15
+      end: 2.0
+      warmup_epochs: 20
       ramp_epochs: 40
 
   eps: 0.000001
-
 
 normalization:
   enabled: true

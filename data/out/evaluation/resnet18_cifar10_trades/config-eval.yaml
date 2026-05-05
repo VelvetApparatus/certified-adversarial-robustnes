@@ -13,7 +13,7 @@ fgsm:
   epsilon: 0.03137
   loss_fn: cross_entropy
   mean: [ 0.4914, 0.4822, 0.4465 ]
-  std: [ 0.2023, 0.1994, 0.2010 ]
+  std: [ 0.2470, 0.2435, 0.2616 ]
 
 pgd:
   epsilon: 0.03137
@@ -22,7 +22,7 @@ pgd:
   norm: Linf
   loss_fn: cross_entropy
   mean: [ 0.4914, 0.4822, 0.4465 ]
-  std: [ 0.2023, 0.1994, 0.2010 ]
+  std: [ 0.2470, 0.2435, 0.2616 ]
 
 params:
   method: trades
@@ -35,7 +35,6 @@ params:
   alpha: 0.001
   beta: 16.0
   evaluation_dir: data/out/evaluation/resnet18_cifar10_trades
-
 
 
 
