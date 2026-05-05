@@ -5,14 +5,14 @@ import torch.nn.functional as F
 
 
 def _l2_normalize(tensor: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
-    flat = tensor.view(tensor.size(0), -1)
-    norm = flat.norm(p=2, dim=1).view(-1, 1, 1, 1)
+    flat = tensor.reshape(tensor.size(0), -1)
+    norm = flat.norm(p=2, dim=1).reshape(-1, 1, 1, 1)
     return tensor / (norm + eps)
 
 
 def _project_l2(delta: torch.Tensor, epsilon: float, eps: float = 1e-12) -> torch.Tensor:
-    flat = delta.view(delta.size(0), -1)
-    norm = flat.norm(p=2, dim=1).view(-1, 1, 1, 1)
+    flat = delta.reshape(delta.size(0), -1)
+    norm = flat.norm(p=2, dim=1).reshape(-1, 1, 1, 1)
 
     factor = torch.clamp(epsilon / (norm + eps), max=1.0)
     return delta * factor
@@ -26,33 +26,36 @@ def generate_trades_adversarial_examples(
         perturb_steps: int,
         distance: str = "l_inf",
 ):
-    model.eval()
-
     distance = distance.lower()
 
+    # calculate clean target once
+    with torch.no_grad():
+        clean_probs = F.softmax(model(x), dim=1)
+
     if distance in ("l_inf", "linf", "inf"):
-        x_adv = x.detach() + 0.001 * torch.randn_like(x)
+        x_adv = x.detach() + torch.empty_like(x).uniform_(-epsilon, epsilon)
+        x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
     elif distance in ("l2", "l_2"):
         delta = torch.randn_like(x)
-        delta = _l2_normalize(delta) * 0.001
+        delta = _l2_normalize(delta) * epsilon
         x_adv = x.detach() + delta
+        x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
     else:
         raise ValueError(f"Unsupported TRADES distance: {distance}")
 
     for _ in range(perturb_steps):
+        x_adv = x_adv.detach()
         x_adv.requires_grad_()
 
-        with torch.enable_grad():
-            logits_clean = model(x)
-            logits_adv = model(x_adv)
+        logits_adv = model(x_adv)
 
-            loss_kl = F.kl_div(
-                F.log_softmax(logits_adv, dim=1),
-                F.softmax(logits_clean.detach(), dim=1),
-                reduction="batchmean",
-            )
+        loss_kl = F.kl_div(
+            F.log_softmax(logits_adv, dim=1),
+            clean_probs,
+            reduction="batchmean",
+        )
 
         grad = torch.autograd.grad(
             loss_kl,
@@ -64,7 +67,6 @@ def generate_trades_adversarial_examples(
         if distance in ("l_inf", "linf", "inf"):
             x_adv = x_adv.detach() + step_size * torch.sign(grad.detach())
             x_adv = torch.min(torch.max(x_adv, x - epsilon), x + epsilon)
-            # add clamping on every loop
             x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
         elif distance in ("l2", "l_2"):
@@ -74,7 +76,6 @@ def generate_trades_adversarial_examples(
             delta = x_adv - x
             delta = _project_l2(delta, epsilon)
             x_adv = x + delta
-            # add clamping on every loop
             x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
     return x_adv.detach()
