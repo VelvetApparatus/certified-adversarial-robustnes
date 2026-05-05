@@ -1,0 +1,47 @@
+model:
+  name: resnet18_10
+  weights_path: data/models/resnet/resnet_18_cifar_10/resnet18_cifar10_full.pth
+  pretrained: true
+  num_classes: 10
+
+test_dataset:
+  name: cifar10
+  root_dir: data/dataset/cifar_10
+  download: true
+  batch_size: 128
+
+fgsm:
+  epsilon: 0.03137
+  loss_fn: cross_entropy
+
+
+pgd:
+  epsilon: 0.5
+  alpha: 0.05
+  steps: 20
+  norm: l2
+  loss_fn: cross_entropy
+
+
+params:
+  method: baseline-evaluation
+  comment: resnet18_10 cifar10 baseline clean evaluation
+  loss_fn: cross_entropy
+
+  # used for noisy evaluation and randomized smoothing certification
+  sigma: 0.25
+
+  # randomized smoothing certification
+  cert_mode: hard
+  N0: 100
+  N: 1000
+  alpha: 0.001
+  beta: 1.0
+  evaluation_dir: data/out/evaluation/resnet18_cifar10
+
+
+normalization:
+  enabled: true
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2470, 0.2435, 0.2616 ]
+
