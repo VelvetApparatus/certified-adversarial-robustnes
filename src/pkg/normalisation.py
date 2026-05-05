@@ -4,7 +4,7 @@ import torch
 from torch import nn
 
 CIFAR10_MEAN = [0.4914, 0.4822, 0.4465]
-CIFAR10_STD = [0.2023, 0.1994, 0.2010]
+CIFAR10_STD = [0.2470, 0.2435, 0.2616]
 
 
 class InputNormalizer(nn.Module):
