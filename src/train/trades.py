@@ -64,6 +64,8 @@ def generate_trades_adversarial_examples(
         if distance in ("l_inf", "linf", "inf"):
             x_adv = x_adv.detach() + step_size * torch.sign(grad.detach())
             x_adv = torch.min(torch.max(x_adv, x - epsilon), x + epsilon)
+            # add clamping on every loop
+            x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
         elif distance in ("l2", "l_2"):
             grad_normalized = _l2_normalize(grad.detach())
@@ -72,6 +74,8 @@ def generate_trades_adversarial_examples(
             delta = x_adv - x
             delta = _project_l2(delta, epsilon)
             x_adv = x + delta
+            # add clamping on every loop
+            x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
     return x_adv.detach()
 
