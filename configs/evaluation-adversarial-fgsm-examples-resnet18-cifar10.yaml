@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/gaussian_noise/cifar10_resnet18/resnet18_10_cifar10_20260504_093924/checkpoints/best.pth
+  weights_path: outputs/train/adversarial_fgsm/cifar10_resnet18/resnet18_10_cifar10_20260504_211117/checkpoints/best.pth
   pretrained: true
   num_classes: 10
 
@@ -9,6 +9,7 @@ test_dataset:
   root_dir: data/dataset/cifar_10
   download: true
   batch_size: 128
+
 
 fgsm:
   epsilon: 0.03137
@@ -23,17 +24,20 @@ pgd:
   loss_fn: cross_entropy
 
 
-
 params:
-  method: gaussian-noise
-  comment: resnet18_10 cifar10 gaussian evaluation
+  method: adversarial-training-fgsm-eval
+  comment: resnet18_10 cifar10 adversarial FGSM training evaluation
   loss_fn: cross_entropy
+
+  # used for noisy evaluation and randomized smoothing certification
   sigma: 0.25
+
+  # randomized smoothing certification
   cert_mode: hard
   N0: 100
   N: 1000
   alpha: 0.001
-  beta: 16.0
+  beta: 1.0
   evaluation_dir: data/out/evaluation/resnet18_cifar10
 
 
@@ -41,3 +45,4 @@ normalization:
   enabled: true
   mean: [ 0.4914, 0.4822, 0.4465 ]
   std: [ 0.2470, 0.2435, 0.2616 ]
+

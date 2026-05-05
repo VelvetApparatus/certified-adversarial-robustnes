@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/trades/cifar10_resnet18/resnet18_10_cifar10_20260503_090617/checkpoints/best.pth
+  weights_path: outputs/train/trades/cifar10_resnet18/resnet18_10_cifar10_20260504_112359/checkpoints/best.pth
   pretrained: true
   num_classes: 10
 
@@ -12,13 +12,14 @@ test_dataset:
 
 fgsm:
   epsilon: 0.03137
+  norm: Linf
   loss_fn: cross_entropy
 
 pgd:
   epsilon: 0.03137
   alpha: 0.00784
-  steps: 10
-  norm: l2
+  steps: 20
+  norm: Linf
   loss_fn: cross_entropy
 
 params:

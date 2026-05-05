@@ -43,6 +43,14 @@ def main():
                 "comment",
 
                 # =====================
+                # Evaluation config
+                # =====================
+                "fgsm_epsilon",
+                "pgd_epsilon",
+                "pgd_alpha",
+                "pgd_norm",
+
+                # =====================
                 # Evaluation metrics
                 # =====================
                 "clean_loss",
@@ -148,6 +156,11 @@ def main():
         "dataset": cfg.test_dataset.name,
         "test_samples": len(test_dataset),
         "comment": cfg.params.comment,
+
+        "fgsm_epsilon": cfg.fgsm.epsilon,
+        "pgd_epsilon": cfg.pgd.epsilon,
+        "pgd_alpha": cfg.pgd.alpha,
+        "pgd_norm": cfg.pgd.norm,
 
         "clean_loss": eval_metrics.get("clean_loss"),
         "clean_acc": eval_metrics.get("clean_acc"),

@@ -23,7 +23,11 @@ def _load_model(
 ):
     model = _get_resnet18(num_classes=num_classes)
 
-    checkpoint = torch.load(model_path, map_location=device)
+    checkpoint = torch.load(
+        model_path,
+        map_location=device,
+        weights_only=False,
+    )
 
     if isinstance(checkpoint, dict) and "net" in checkpoint:
         state_dict = checkpoint["net"]
