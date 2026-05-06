@@ -127,10 +127,12 @@ def _parse_training(cfg: Optional[dict]) -> TrainingConfig:
         criterion=cfg.get("criterion"),
         wandb=_parse_wandb(cfg.get("wandb")),
 
+        checkpoint=cfg.get("checkpoint", None),
         save_dir=cfg.get("save_dir", "./checkpoints"),
         save_best=cfg.get("save_best", True),
         save_last=cfg.get("save_last", True),
-        metric_for_best_model=cfg.get("metric_for_best_model", "test_accuracy"),
+        metric_for_best_model=cfg.get("metric_for_best_model", "eval_acc"),
+        metric_mode_for_best_model=cfg.get("metric_mode_for_best_model", "auto"),
     )
 
 

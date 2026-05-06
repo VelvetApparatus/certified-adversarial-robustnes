@@ -7,6 +7,7 @@ from src.adversaries.fgsm import FGSMAttack
 from src.train.common import train
 from src.train.adversarial_training import adversarial_train_one_epoch
 from src.pkg import get_device, get_loss_fn
+from src.eval.validation import evaluate_adversarial
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("--config", type=str, required=True)
@@ -17,14 +18,6 @@ def main():
     cfg = load_adversarial_training_config(args.config)
     os.makedirs(cfg.training.save_dir, exist_ok=True)
     shutil.copy(args.config, os.path.join(cfg.training.save_dir, "config.yaml"))
-
-    # adversary = PGD(
-    #     epsilon=cfg.pgd.epsilon,
-    #     alpha=cfg.pgd.alpha,
-    #     steps=cfg.pgd.steps,
-    #     loss_fn=get_loss_fn(cfg.training.criterion),
-    #     norm=cfg.pgd.norm,
-    # )
 
     adversary = FGSMAttack(
         eps=cfg.fgsm.epsilon,
@@ -41,11 +34,17 @@ def main():
         train_dataset_config=cfg.dataset,
         split_config=cfg.split,
         loss_fn=get_loss_fn(cfg.training.criterion),
+        # train epoch
         train_epoch_fn=adversarial_train_one_epoch,
+
+        # eval epoch
+        eval_fn=evaluate_adversarial,
+
+        # kwargs
+        metric_prefix="fgsm",
         adversary=adversary,
         adversarial_config=cfg
     )
 
-
-if __name__ == "__main__":
-    main()
+    if __name__ == "__main__":
+        main()

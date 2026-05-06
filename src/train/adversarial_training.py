@@ -1,7 +1,7 @@
 from tqdm import tqdm
+import torch
 
 from src.config.adversarial_training import AdversarialTrainingConfig
-from src.pkg import update_metrics, finalize_metrics, init_metrics
 
 
 def adversarial_train_one_epoch(
@@ -15,10 +15,17 @@ def adversarial_train_one_epoch(
         adversarial_config: AdversarialTrainingConfig,
 ):
     model.train()
-    metrics = init_metrics()
 
-    clean_loss_weight = getattr(adversarial_config.training, "clean_loss_weight", 0.8)
-    adv_loss_weight = getattr(adversarial_config.training, "adv_loss_weight", 0.2)
+    clean_loss_weight = getattr(adversarial_config.training, "clean_loss_weight", 0.0)
+    adv_loss_weight = getattr(adversarial_config.training, "adv_loss_weight", 1.0)
+
+    total_loss = 0.0
+    total_clean_loss = 0.0
+    total_adv_loss = 0.0
+
+    total_clean_correct = 0
+    total_adv_correct = 0
+    total_samples = 0
 
     progress = tqdm(
         train_loader,
@@ -31,6 +38,9 @@ def adversarial_train_one_epoch(
         y = y.to(device, non_blocking=True)
 
         batch_size = x.size(0)
+
+        # Generate adversarial examples.
+        # adversary.gen should not leave model in eval mode.
         x_adv = adversary.gen(model, x, y).detach()
 
         model.train()
@@ -47,19 +57,41 @@ def adversarial_train_one_epoch(
         loss.backward()
         optimizer.step()
 
-        # Для train accuracy логируем accuracy на adversarial examples.
-        update_metrics(
-            storage=metrics,
-            logits=logits_adv,
-            y=y,
-            loss=loss,
-            batch_size=batch_size,
-        )
+        with torch.no_grad():
+            clean_preds = logits_clean.argmax(dim=1)
+            adv_preds = logits_adv.argmax(dim=1)
 
-        current = finalize_metrics(metrics)
+            clean_correct = clean_preds.eq(y).sum().item()
+            adv_correct = adv_preds.eq(y).sum().item()
+
+        total_samples += batch_size
+
+        total_loss += loss.detach().item() * batch_size
+        total_clean_loss += loss_clean.detach().item() * batch_size
+        total_adv_loss += loss_adv.detach().item() * batch_size
+
+        total_clean_correct += clean_correct
+        total_adv_correct += adv_correct
+
         progress.set_postfix(
-            loss=f"{current['loss']:.4f}",
-            acc=f"{current['acc']:.4f}",
+            loss=f"{total_loss / total_samples:.4f}",
+            clean_loss=f"{total_clean_loss / total_samples:.4f}",
+            adv_loss=f"{total_adv_loss / total_samples:.4f}",
+            clean_acc=f"{total_clean_correct / total_samples:.4f}",
+            adv_acc=f"{total_adv_correct / total_samples:.4f}",
         )
 
-    return finalize_metrics(metrics)
+    clean_acc = total_clean_correct / total_samples
+    adv_acc = total_adv_correct / total_samples
+
+    return {
+        "loss": total_loss / total_samples,
+        "clean_loss": total_clean_loss / total_samples,
+        "adv_loss": total_adv_loss / total_samples,
+
+        "clean_acc": clean_acc,
+        "adv_acc": adv_acc,
+
+        # compatibility: for adversarial training, acc means adv_acc
+        "acc": adv_acc,
+    }

@@ -1,12 +1,20 @@
 import datetime
+import math
 import os
-from typing import Callable
+from typing import Callable, Literal
 
 import torch
 import wandb
 from tqdm import tqdm
 
-from src.config.common import ModelConfig, DatasetConfig, DatasetSplitConfig, TrainingConfig, NormalizeConfig
+from src.config.common import (
+    ModelConfig,
+    DatasetConfig,
+    DatasetSplitConfig,
+    TrainingConfig,
+    NormalizeConfig,
+    BestMetricMode,
+)
 from src.config.secret import WANDB_TOKEN
 from src.db.api import build_train_eval_loaders
 from src.model.api import get_model
@@ -42,6 +50,35 @@ def select_metric(
     return float(available[metric_name])
 
 
+def resolve_metric_mode(
+        metric_name: str,
+        metric_mode: BestMetricMode,
+) -> Literal["min", "max"]:
+    if metric_mode in ("min", "max"):
+        return metric_mode
+
+    metric_name = metric_name.lower()
+    if "loss" in metric_name:
+        return "min"
+
+    return "max"
+
+
+def initial_best_metric(metric_mode: Literal["min", "max"]) -> float:
+    return math.inf if metric_mode == "min" else -math.inf
+
+
+def is_better_metric(
+        current: float,
+        best: float,
+        metric_mode: Literal["min", "max"],
+) -> bool:
+    if metric_mode == "min":
+        return current < best
+
+    return current > best
+
+
 def save_checkpoint(
         path: str,
         model,
@@ -49,6 +86,8 @@ def save_checkpoint(
         scheduler,
         epoch: int,
         best_metric: float,
+        best_metric_name: str,
+        best_metric_mode: str,
 ):
     net = model.model if isinstance(model, InputNormalizer) else model
 
@@ -58,8 +97,11 @@ def save_checkpoint(
         "scheduler": scheduler.state_dict() if scheduler is not None else None,
         "epoch": epoch,
         "best_metric": best_metric,
+        "best_metric_name": best_metric_name,
+        "best_metric_mode": best_metric_mode,
     }
     torch.save(state, path)
+
 
 def train(
         name: str,
@@ -71,6 +113,7 @@ def train(
         split_config: DatasetSplitConfig,
         loss_fn,
         train_epoch_fn: Callable,
+        eval_fn: Callable,
         **kwargs,
 ):
     model = get_model(model_cfg, device).to(device)
@@ -94,7 +137,11 @@ def train(
     os.makedirs(checkpoints_dir, exist_ok=True)
 
     start_epoch = 1
-    best_metric = -1.0
+    best_metric_mode = resolve_metric_mode(
+        metric_name=cfg.metric_for_best_model,
+        metric_mode=cfg.metric_mode_for_best_model,
+    )
+    best_metric = initial_best_metric(best_metric_mode)
 
     if cfg.checkpoint is not None:
         checkpoint = torch.load(cfg.checkpoint, map_location=device)
@@ -107,7 +154,22 @@ def train(
             scheduler.load_state_dict(checkpoint["scheduler"])
 
         start_epoch = checkpoint["epoch"] + 1
-        best_metric = checkpoint.get("best_metric", -1.0)
+
+        checkpoint_metric_name = checkpoint.get("best_metric_name")
+        checkpoint_metric_mode = checkpoint.get("best_metric_mode")
+
+        if (
+                checkpoint_metric_name == cfg.metric_for_best_model
+                and checkpoint_metric_mode == best_metric_mode
+                and "best_metric" in checkpoint
+        ):
+            best_metric = checkpoint["best_metric"]
+        elif "best_metric" in checkpoint:
+            print(
+                "==> Checkpoint best metric metadata does not match current "
+                "metric_for_best_model / metric_mode_for_best_model. "
+                "Best metric tracking will be reset for this run."
+            )
 
     if norm_cfg.enabled:
         model = InputNormalizer(
@@ -123,6 +185,11 @@ def train(
         dataset_cfg=train_dataset_config,
         model_cfg=model_cfg,
         split=split_config,
+    )
+
+    print(
+        "Best checkpoint metric: "
+        f"{cfg.metric_for_best_model} ({best_metric_mode})"
     )
 
     for epoch in tqdm(range(start_epoch, cfg.epochs + 1), desc="Epoch"):
@@ -146,7 +213,13 @@ def train(
         eval_metrics = None
         if eval_loader is not None:
             model.eval()
-            eval_metrics = evaluate_clean(model, eval_loader, loss_fn, device)
+            eval_metrics = eval_fn(
+                model=model,
+                loader=eval_loader,
+                criterion=loss_fn,
+                device=device,
+                **kwargs,
+            )
 
             print("=" * 80)
             print("Eval Clean Evaluation")
@@ -173,11 +246,23 @@ def train(
             metric_name=cfg.metric_for_best_model,
         )
 
-        if cfg.save_best and metric_value > best_metric:
+        if not math.isfinite(metric_value):
+            print(
+                f"==> Metric '{cfg.metric_for_best_model}' is not finite "
+                f"({metric_value}); skipping best-checkpoint update."
+            )
+        elif cfg.save_best and is_better_metric(
+                current=metric_value,
+                best=best_metric,
+                metric_mode=best_metric_mode,
+        ):
             best_metric = metric_value
 
             best_path = os.path.join(checkpoints_dir, "best.pth")
-            print(f"==> Saving best checkpoint: {best_path}")
+            print(
+                f"==> Saving best checkpoint: {best_path} "
+                f"({cfg.metric_for_best_model}={best_metric:.4f})"
+            )
 
             save_checkpoint(
                 path=best_path,
@@ -186,6 +271,8 @@ def train(
                 scheduler=scheduler,
                 epoch=epoch,
                 best_metric=best_metric,
+                best_metric_name=cfg.metric_for_best_model,
+                best_metric_mode=best_metric_mode,
             )
 
         if scheduler is not None:
@@ -202,13 +289,18 @@ def train(
             scheduler=scheduler,
             epoch=cfg.epochs,
             best_metric=best_metric,
+            best_metric_name=cfg.metric_for_best_model,
+            best_metric_mode=best_metric_mode,
         )
 
     if use_wandb:
         wandb.finish()
 
     print("\nTraining finished")
-    print(f"Best metric: {best_metric:.4f}")
+    print(
+        f"Best metric ({cfg.metric_for_best_model}, {best_metric_mode}): "
+        f"{best_metric:.4f}"
+    )
 
     return {
         "output_dir": output_dir,

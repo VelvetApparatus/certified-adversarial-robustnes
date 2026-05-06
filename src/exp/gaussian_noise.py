@@ -4,6 +4,7 @@ import shutil
 
 from src.config.gaussian import load_gaussian_train_config
 from src.train.common import train
+from src.eval.validation import evaluate_noisy
 from src.train.gaussian_training import gaussian_train_one_epoch
 from src.pkg import get_device, get_loss_fn
 
@@ -25,8 +26,14 @@ def main():
         train_dataset_config=cfg.dataset,
         split_config=cfg.split,
         loss_fn=get_loss_fn(cfg.train.criterion),
-        train_epoch_fn=gaussian_train_one_epoch,
 
+        # train epoch
+        train_epoch_fn=gaussian_train_one_epoch,
+        # eval
+        eval_fn=evaluate_noisy,
+
+
+        # kwargs
         sigma=cfg.params.sigma,
         clean_loss_weight=cfg.params.clean_loss_weight,
         noisy_loss_weight=cfg.params.noisy_loss_weight,

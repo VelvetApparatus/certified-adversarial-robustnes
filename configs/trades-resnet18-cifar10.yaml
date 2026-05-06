@@ -30,7 +30,8 @@ training:
   save_dir: ./outputs/train/trades/cifar10_resnet18
   save_best: true
   save_last: true
-  metric_for_best_model: eval_acc
+  metric_for_best_model: eval_macer_acc
+  metric_mode_for_best_model: max
 
   optimizer:
     name: sgd

@@ -2,6 +2,7 @@ import argparse
 import os
 import shutil
 
+from src.eval.validation import evaluate_adversarial
 from src.config.adversarial_training import load_adversarial_training_config
 from src.adversaries.pgd import PGD
 from src.train.common import train
@@ -35,11 +36,18 @@ def main():
         train_dataset_config=cfg.dataset,
         split_config=cfg.split,
         loss_fn=get_loss_fn(cfg.training.criterion),
+
+        # train epoch
         train_epoch_fn=adversarial_train_one_epoch,
+
+        # eval
+        eval_fn=evaluate_adversarial,
+
+        # kwargs
+        metric_prefix="pgd",
         adversary=adversary,
         adversarial_config=cfg
     )
 
-
-if __name__ == "__main__":
-    main()
+    if __name__ == "__main__":
+        main()
