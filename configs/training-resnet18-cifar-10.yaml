@@ -60,11 +60,11 @@ training:
   save_dir: ./checkpoints
   save_best: true
   save_last: true
-  metric_for_best_model: test_accuracy
+  metric_for_best_model: eval_acc
+  metric_mode_for_best_model: auto
 
 
 normalization:
   enabled: true
   mean: [ 0.4914, 0.4822, 0.4465 ]
   std: [ 0.2470, 0.2435, 0.2616 ]
-

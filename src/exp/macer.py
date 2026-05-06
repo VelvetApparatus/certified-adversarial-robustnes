@@ -4,6 +4,7 @@ import argparse
 
 from src.config.macer import load_macer_training_config
 from src.pkg import get_device, get_loss_fn
+from src.eval.validation import evaluate_smoothed
 from src.train.common import train
 from src.train.macer import macer_train_one_epoch
 
@@ -27,9 +28,23 @@ def main():
         train_dataset_config=cfg.dataset,
         split_config=cfg.split,
         loss_fn=loss_fn,
+
+        # eval
+        eval_fn=evaluate_smoothed,
+
+        # train epoch
         train_epoch_fn=macer_train_one_epoch,
 
+
+        # kwargs
         params=cfg.params,
+        sigma=cfg.params.sigma,
+        num_classes=cfg.model.num_classes,
+        # todo: add normal config
+        samples=cfg.params.gauss_samples * 4,
+        beta=cfg.params.beta,
+        eps=cfg.params.eps,
+
     )
 
 

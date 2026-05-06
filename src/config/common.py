@@ -8,6 +8,7 @@ LossName = Literal["cross_entropy"]
 NormName = Literal["Linf", "l2"]
 AttackName = Literal["fgsm", "pgd", "stadv"]
 OptimizerName = Literal["sgd", "adam", "adamw"]
+BestMetricMode = Literal["auto", "min", "max"]
 
 SchedulerName = Literal["none", "step_lr", "cosine"]
 
@@ -138,7 +139,8 @@ class TrainingConfig:
     checkpoint: str = None
     save_best: bool = True
     save_last: bool = True
-    metric_for_best_model: str = "test_accuracy"
+    metric_for_best_model: str = "eval_acc"
+    metric_mode_for_best_model: BestMetricMode = "auto"
     save_dir: str = None
 
 

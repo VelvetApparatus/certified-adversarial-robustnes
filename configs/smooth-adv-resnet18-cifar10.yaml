@@ -31,6 +31,7 @@ training:
   save_best: true
   save_last: true
   metric_for_best_model: eval_acc
+  metric_mode_for_best_model: auto
 
   optimizer:
     name: sgd
