@@ -229,6 +229,7 @@ def macer_train_one_epoch(
         device,
         epoch: int,
         params: MacerTrainingParams,
+        **kwargs
 ):
     model.train()
 

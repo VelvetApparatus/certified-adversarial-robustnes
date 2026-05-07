@@ -30,7 +30,8 @@ training:
   save_dir: ./outputs/train/adversarial_fgsm/cifar10_resnet18
   save_best: true
   save_last: true
-  metric_for_best_model: eval_acc
+  metric_for_best_model: eval_fgsm_acc
+  metric_mode_for_best_model: max
 
   optimizer:
     name: sgd
@@ -50,31 +51,27 @@ training:
     enabled: true
     project: certified-robustness
     entity: null
-    run_name: adversarial_pgd_cifar10_resnet18_train
+    run_name: adversarial_fgsm_cifar10_resnet18_train
     tags:
       - adversarial-training
-      - pgd
+      - fgsm
       - cifar10
       - resnet18
 
 pgd:
-  name: pgd
-
-  # For CIFAR-10 in [0,1] space:
-  # epsilon = 8/255 ≈ 0.031
-  # alpha   = 2/255 ≈ 0.007
-  epsilon: 0.031
-  alpha: 0.007
-  steps: 10
-
-  # Your NormName currently supports "Linf" and "l2".
-  norm: l2
-
+  epsilon: 0.031372549
+  alpha: 0.007843137
+  steps: 20
+  norm: Linf
+  random_start: true
+  restarts: 1
   loss_fn: cross_entropy
 
 fgsm:
   name: fgsm
-  epsilon: 0.031
+  epsilon: 0.031372549
+  alpha: 0.039215686   # 10/255
+  random_start: true
   loss_fn: cross_entropy
 
 normalization:

@@ -1,20 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Evaluating adversarial PGD training model ==="
-python -m src.exp.evaluate --config configs/evaluation-adversarial-pgd-examples-resnet18-cifar10.yaml
+# echo "=== Evaluating adversarial PGD training model ==="
+# python -m src.exp.evaluate --config configs/evaluation-adversarial-pgd-examples-resnet18-cifar10.yaml
 
-echo "=== Evaluating adversarial FGSM training model ==="
-python -m src.exp.evaluate --config configs/evaluation-adversarial-fgsm-examples-resnet18-cifar10.yaml
+# echo "=== Evaluating adversarial FGSM training model ==="
+# python -m src.exp.evaluate --config configs/evaluation-adversarial-fgsm-examples-resnet18-cifar10.yaml
 
-echo "=== Evaluating gaussian training model ==="
-python -m src.exp.evaluate --config configs/evaluation-gaussian-noise-resnet18-cifar10.yaml
+# echo "=== Evaluating gaussian training model ==="
+# python -m src.exp.evaluate --config configs/evaluation-gaussian-noise-resnet18-cifar10.yaml
 
-echo "=== Evaluating TRADES model ==="
-python -m src.exp.evaluate --config configs/evaluation-trades-resnet18-cifar10.yaml
+# echo "=== Evaluating TRADES model ==="
+# python -m src.exp.evaluate --config configs/evaluation-trades-resnet18-cifar10.yaml
 
-echo "=== Evaluating MACER model ==="
-python -m src.exp.evaluate --config configs/evaluation-macer-resnet18-cifar10.yaml
+# echo "=== Evaluating MACER model ==="
+# python -m src.exp.evaluate --config configs/evaluation-macer-resnet18-cifar10.yaml
+
+python - <<'PY'
+import torch, sys
+print("CUDA:", torch.cuda.is_available())
+print("GPUs:", torch.cuda.device_count())
+if not torch.cuda.is_available():
+    sys.exit("GPU недоступен — обучение пойдёт на CPU, останавливаю запуск.")
+PY
 
 echo "=== Evaluation baseline model ==="
 python -m src.exp.evaluate --config configs/evaluation-baseline-resnet18-cifar10.yaml

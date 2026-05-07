@@ -9,6 +9,7 @@ def evaluate_clean(
         loader,
         criterion,
         device,
+        **kwargs
 ) -> dict:
     model.eval()
 
@@ -42,6 +43,7 @@ def evaluate_adversarial(
         criterion,
         device,
         metric_prefix: str,
+        **kwargs
 ) -> dict:
     model.eval()
 
@@ -81,6 +83,7 @@ def evaluate_noisy(
         sigma: float,
         samples: int = 3,
         clamp: bool = True,
+        **kwargs
 ) -> dict:
     model.eval()
 
@@ -130,6 +133,7 @@ def evaluate_smoothed(
         samples: int = 32,
         beta: float = 1.0,
         eps: float = 1e-6,
+        **kwargs
 ) -> dict:
     model.eval()
 
