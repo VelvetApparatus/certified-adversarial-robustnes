@@ -7,30 +7,30 @@ model:
 
 dataset:
   name: cifar10
-  root_dir: ./data/dataset/cifar_10
+  root_dir: data/dataset/cifar_10
   train: true
-  download: false
+  download: true
   batch_size: 128
   num_workers: 2
 
 split:
   enabled: true
   eval_ratio: 0.1
-  eval_size: null
   seed: 42
   shuffle: true
+  eval_size: null
 
-training:
+train:
   enabled: true
   epochs: 100
   seed: 42
   criterion: cross_entropy
 
   checkpoint: null
-  save_dir: ./outputs/train/trades/cifar10_resnet18
+  save_dir: ./outputs/train/gaussian_noise/cifar10_resnet18
   save_best: true
   save_last: true
-  metric_for_best_model: eval_macer_acc
+  metric_for_best_model: eval_noisy_acc
   metric_mode_for_best_model: max
 
   optimizer:
@@ -51,18 +51,30 @@ training:
     enabled: true
     project: certified-robustness
     entity: null
-    run_name: trades_cifar10_resnet18
+    run_name: gaussian_noise_cifar10_resnet18
     tags:
-      - trades
+      - gaussian
       - cifar10
       - resnet18
 
-trades_params:
-  epsilon: 0.031372549
-  step_size: 0.007843137
-  perturb_steps: 10
-  beta: 6.0
-  distance: l_inf
+params:
+  # Gaussian noise standard deviation.
+  # Важно: если normalized_space=true, sigma применяется к уже нормализованному tensor.
+  sigma: 0.25
+
+  # Weight of CE loss on clean inputs.
+  clean_loss_weight: 0.5
+
+  # Weight of CE loss on noisy inputs.
+  noisy_loss_weight: 1.0
+
+  # Fraction of batch to which Gaussian noise is applied.
+  noise_ratio: 1.0
+
+  # If true, noise is added directly in normalized tensor space.
+  # If false, implementation should unnormalize -> add noise -> clamp [0,1] -> normalize.
+  normalized_space: false
+
 
 normalization:
   enabled: true

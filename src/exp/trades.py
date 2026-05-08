@@ -3,9 +3,10 @@ import os
 import argparse
 import shutil
 
+from src.adversaries.pgd import PGD
 from src.config.trades import load_trades_config
 from src.pkg import *
-from src.eval.validation import evaluate_smoothed
+from src.eval.validation import evaluate_adversarial
 from src.train.common import train
 from src.train.trades import trades_train_one_epoch
 
@@ -23,6 +24,14 @@ def main():
     os.makedirs(config.training.save_dir, exist_ok=True)
     shutil.copy(args.config, os.path.join(config.training.save_dir, "config.yaml"))
 
+    adversary = PGD(
+        epsilon=config.pgd.epsilon,
+        alpha=config.pgd.alpha,
+        steps=config.pgd.steps,
+        loss_fn=get_loss_fn(config.training.criterion),
+        norm=config.pgd.norm,
+    )
+
     train(
         "TRADES-training",
         cfg=config.training,
@@ -37,20 +46,11 @@ def main():
         train_epoch_fn=trades_train_one_epoch,
 
         # eval
-        eval_fn=evaluate_smoothed,
+        eval_fn=evaluate_adversarial,
 
         # kwargs
-        step_size=config.params.step_size,
-        epsilon=config.params.epsilon,
-        perturb_steps=10,
-        beta=config.params.beta,
-        distance="l2",
-        sigma=config.params.sigma,
-        num_classes=config.model.num_classes,
-        # todo: add normal config
-        samples=64,
-        eps=config.params.epsilon,
-
+        metric_prefix="pgd",
+        adversary=adversary,
     )
 
 

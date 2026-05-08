@@ -28,7 +28,9 @@ def generate_trades_adversarial_examples(
 ):
     distance = distance.lower()
 
-    # calculate clean target once
+    was_training = model.training
+    model.eval()
+
     with torch.no_grad():
         clean_probs = F.softmax(model(x), dim=1)
 
@@ -46,8 +48,7 @@ def generate_trades_adversarial_examples(
         raise ValueError(f"Unsupported TRADES distance: {distance}")
 
     for _ in range(perturb_steps):
-        x_adv = x_adv.detach()
-        x_adv.requires_grad_()
+        x_adv = x_adv.detach().requires_grad_(True)
 
         logits_adv = model(x_adv)
 
@@ -59,14 +60,14 @@ def generate_trades_adversarial_examples(
 
         grad = torch.autograd.grad(
             loss_kl,
-            [x_adv],
+            x_adv,
             retain_graph=False,
             create_graph=False,
         )[0]
 
         if distance in ("l_inf", "linf", "inf"):
             x_adv = x_adv.detach() + step_size * torch.sign(grad.detach())
-            x_adv = torch.min(torch.max(x_adv, x - epsilon), x + epsilon)
+            x_adv = torch.max(torch.min(x_adv, x + epsilon), x - epsilon)
             x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
         elif distance in ("l2", "l_2"):
@@ -77,6 +78,9 @@ def generate_trades_adversarial_examples(
             delta = _project_l2(delta, epsilon)
             x_adv = x + delta
             x_adv = torch.clamp(x_adv, 0.0, 1.0)
+
+    if was_training:
+        model.train()
 
     return x_adv.detach()
 
@@ -167,6 +171,9 @@ def trades_train_one_epoch(
 
         progress.set_postfix(
             loss=f"{total_loss / total_samples:.4f}",
+            clean_loss=f"{total_clean_loss / total_samples:.4f}",
+            robust_loss=f"{total_robust_loss / total_samples:.4f}",
+            beta_robust=f"{beta * total_robust_loss / total_samples:.4f}",
             clean_acc=f"{total_clean_correct / total_samples:.4f}",
             adv_acc=f"{total_adv_correct / total_samples:.4f}",
         )

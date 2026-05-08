@@ -4,10 +4,10 @@ import yaml
 
 from src.config._parsers import (
     _parse_dataset, _parse_training, _parse_model, _parse_trades_params,
-    _parse_dataset_split, _parse_normalization
+    _parse_dataset_split, _parse_normalization, _parse_pgd
 )
 from src.config.common import ModelConfig, DatasetConfig, TradesParams, TrainingConfig, DatasetSplitConfig, \
-    NormalizeConfig
+    NormalizeConfig, PGDAttackConfig
 
 
 @dataclass
@@ -18,6 +18,7 @@ class TradesConfig:
     dataset: DatasetConfig
     split: DatasetSplitConfig
     normalization: NormalizeConfig
+    pgd: PGDAttackConfig
 
 
 def load_trades_config(path: str) -> TradesConfig:
@@ -35,6 +36,10 @@ def load_trades_config(path: str) -> TradesConfig:
         raise ValueError("Config must contain 'training'")
     if "split" not in raw:
         raise ValueError("Config must contain 'split'")
+    if "normalization" not in raw:
+        raise ValueError("Config must contain 'normalization'")
+    if "pgd" not in raw:
+        raise ValueError("Config must contain 'pgd'")
 
     return TradesConfig(
         training=_parse_training(raw["training"]),
@@ -43,4 +48,5 @@ def load_trades_config(path: str) -> TradesConfig:
         dataset=_parse_dataset(raw["dataset"]),
         split=_parse_dataset_split(raw["split"]),
         normalization=_parse_normalization(raw["normalization"]),
+        pgd=_parse_pgd(raw["pgd"])
     )

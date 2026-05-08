@@ -133,8 +133,55 @@ def evaluate_smoothed(
         samples: int = 32,
         beta: float = 1.0,
         eps: float = 1e-6,
+        clamp: bool = True,
         **kwargs
 ) -> dict:
+    """
+    Fast proxy evaluation for smoothed / MACER-style models.
+
+    Important:
+    This function does NOT perform rigorous randomized smoothing certification.
+    It estimates a differentiable/proxy smoothing quality using Monte-Carlo
+    averaging of softmax probabilities.
+
+    Use this function for:
+      - monitoring smoothed accuracy during training;
+      - approximate MACER radius diagnostics;
+      - checkpoint selection via smoothed_acc / macer_acc / macer_score.
+
+    Use separate certification code, e.g. Smooth.certify(...), for final
+    certified accuracy and certified radius.
+
+    Returned metrics:
+      clean_acc:
+          Accuracy of the base classifier on clean inputs.
+
+      smoothed_acc / macer_acc:
+          Accuracy of the smoothed classifier based on averaged probabilities.
+
+      margin_mean_correct:
+          Mean normal-quantile margin only over correctly smoothed-classified
+          examples with finite margin.
+
+      radius_mean_correct:
+          Mean proxy radius only over correctly smoothed-classified examples.
+
+      margin_mean_all:
+          Mean normal-quantile margin over all examples, assigning 0 to
+          incorrectly smoothed-classified examples.
+
+      radius_mean_all:
+          Mean proxy radius over all examples, assigning 0 to incorrectly
+          smoothed-classified examples.
+
+      radius_coverage:
+          Fraction of all examples for which a positive finite proxy radius
+          was computed.
+
+      macer_score:
+          Simple combined metric. Useful for checkpoint selection when one
+          wants both smoothed accuracy and non-trivial radius.
+    """
     model.eval()
 
     normal = Normal(
@@ -146,9 +193,12 @@ def evaluate_smoothed(
     total_smoothed_correct = 0
     total_samples = 0
 
-    total_margin = 0.0
-    total_radius = 0.0
-    total_valid_radius_samples = 0
+    total_margin_correct = 0.0
+    total_radius_correct = 0.0
+    total_valid_correct = 0
+
+    total_margin_all = 0.0
+    total_radius_all = 0.0
 
     for x, y in loader:
         x = x.to(device, non_blocking=True)
@@ -167,16 +217,22 @@ def evaluate_smoothed(
         )
 
         noise = torch.randn_like(x_rep) * sigma
-        x_noisy = torch.clamp(x_rep + noise, 0.0, 1.0)
+        x_noisy = x_rep + noise
+
+        if clamp:
+            x_noisy = torch.clamp(x_noisy, 0.0, 1.0)
 
         logits = model(x_noisy)
         logits = logits.reshape(batch_size, samples, num_classes)
 
+        # Smoothed prediction. This is the classifier used for smoothed_acc.
         probs = F.softmax(logits, dim=2).mean(dim=1)
         smoothed_preds = probs.argmax(dim=1)
 
-        total_smoothed_correct += smoothed_preds.eq(y).sum().item()
+        smoothed_correct = smoothed_preds.eq(y)
+        total_smoothed_correct += smoothed_correct.sum().item()
 
+        # Temperature-scaled probabilities for MACER-style proxy radius.
         beta_probs = F.softmax(beta * logits, dim=2).mean(dim=1)
         beta_probs = beta_probs.clamp(min=eps, max=1.0 - eps)
 
@@ -184,38 +240,75 @@ def evaluate_smoothed(
 
         other_probs = beta_probs.clone()
         other_probs.scatter_(1, y.reshape(-1, 1), -1.0)
-        p_other = other_probs.max(dim=1).values.clamp(min=eps, max=1.0 - eps)
+        p_other = other_probs.max(dim=1).values
+        p_other = p_other.clamp(min=eps, max=1.0 - eps)
 
-        correct_mask = smoothed_preds.eq(y)
+        # For correctly smoothed-classified examples, p_y should be the top
+        # class probability. The proxy radius is based on the margin between
+        # true class and closest competitor.
+        margin = normal.icdf(p_y) - normal.icdf(p_other)
+        radius = sigma * margin / 2.0
 
-        if correct_mask.any():
-            p_a = p_y[correct_mask]
-            p_b = p_other[correct_mask]
+        # Numerical safety.
+        valid = torch.isfinite(margin) & torch.isfinite(radius) & smoothed_correct
+        radius = torch.clamp(radius, min=0.0)
+        margin = torch.clamp(margin, min=0.0)
 
-            margin = normal.icdf(p_a) - normal.icdf(p_b)
-            valid = torch.isfinite(margin)
+        # Metrics over correctly classified smoothed examples only.
+        if valid.any():
+            valid_margin = margin[valid]
+            valid_radius = radius[valid]
 
-            if valid.any():
-                margin = margin[valid]
-                radius = sigma * margin / 2.0
+            total_margin_correct += valid_margin.sum().item()
+            total_radius_correct += valid_radius.sum().item()
+            total_valid_correct += valid_radius.numel()
 
-                total_margin += margin.sum().item()
-                total_radius += radius.sum().item()
-                total_valid_radius_samples += radius.numel()
+        # Metrics over all examples: non-valid / incorrect examples contribute 0.
+        radius_all = torch.where(valid, radius, torch.zeros_like(radius))
+        margin_all = torch.where(valid, margin, torch.zeros_like(margin))
+
+        total_radius_all += radius_all.sum().item()
+        total_margin_all += margin_all.sum().item()
 
         total_samples += batch_size
 
-    if total_valid_radius_samples > 0:
-        margin_mean = total_margin / total_valid_radius_samples
-        radius_mean = total_radius / total_valid_radius_samples
+    clean_acc = total_clean_correct / total_samples
+    smoothed_acc = total_smoothed_correct / total_samples
+
+    if total_valid_correct > 0:
+        margin_mean_correct = total_margin_correct / total_valid_correct
+        radius_mean_correct = total_radius_correct / total_valid_correct
     else:
-        margin_mean = 0.0
-        radius_mean = 0.0
+        margin_mean_correct = 0.0
+        radius_mean_correct = 0.0
+
+    margin_mean_all = total_margin_all / total_samples
+    radius_mean_all = total_radius_all / total_samples
+    radius_coverage = total_valid_correct / total_samples
+
+    # Simple checkpoint metric: rewards both correctness and radius.
+    # Since radius_mean_all already includes zeros for incorrect examples,
+    # it is often a better selection metric than radius_mean_correct.
+    macer_score = radius_mean_all
 
     return {
-        "clean_acc": total_clean_correct / total_samples,
-        "smoothed_acc": total_smoothed_correct / total_samples,
-        "macer_acc": total_smoothed_correct / total_samples,
-        "margin_mean": margin_mean,
-        "radius_mean": radius_mean,
+        "clean_acc": clean_acc,
+
+        # Keep both names for compatibility with your current configs/logging.
+        "smoothed_acc": smoothed_acc,
+        "macer_acc": smoothed_acc,
+
+        # Proxy metrics over correctly smoothed-classified samples only.
+        "margin_mean_correct": margin_mean_correct,
+        "radius_mean_correct": radius_mean_correct,
+
+        # Safer proxy metrics over all samples.
+        "margin_mean_all": margin_mean_all,
+        "radius_mean_all": radius_mean_all,
+
+        # Fraction of samples that are both smoothed-correct and have finite radius.
+        "radius_coverage": radius_coverage,
+
+        # Recommended single metric if you want radius-aware checkpointing.
+        "macer_score": macer_score,
     }
