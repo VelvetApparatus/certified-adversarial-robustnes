@@ -70,7 +70,7 @@ pgd:
 fgsm:
   name: fgsm
   epsilon: 0.031372549
-  alpha: 0.039215686   # 10/255
+  alpha: 0.007843137
   random_start: true
   loss_fn: cross_entropy
 

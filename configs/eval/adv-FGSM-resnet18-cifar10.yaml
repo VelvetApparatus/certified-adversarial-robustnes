@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/adversarial_fgsm/cifar10_resnet18/resnet18_10_cifar10_20260507_091138/checkpoints/best.pth
+  weights_path: outputs/train/adversarial_fgsm/cifar10_resnet18/resnet18_10_cifar10_20260508_104028/checkpoints/best.pth
   pretrained: true
   num_classes: 10
 

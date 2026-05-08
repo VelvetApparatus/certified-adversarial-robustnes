@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/macer/cifar10_resnet18/resnet18_10_cifar10_20260507_100218/checkpoints/best.pth
+  weights_path: outputs/train/macer/cifar10_resnet18/resnet18_10_cifar10_20260508_110415/checkpoints/best.pth
   pretrained: true
   num_classes: 10
 

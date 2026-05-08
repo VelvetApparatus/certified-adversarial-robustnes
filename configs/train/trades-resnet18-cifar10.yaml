@@ -64,6 +64,14 @@ trades_params:
   beta: 6.0
   distance: l_inf
 
+pgd:
+  name: pgd
+  epsilon: 0.031372549  # 8/255
+  alpha: 0.007843137    # 2/255
+  steps: 10
+  norm: Linf
+  loss_fn: cross_entropy
+
 normalization:
   enabled: true
   mean: [ 0.4914, 0.4822, 0.4465 ]

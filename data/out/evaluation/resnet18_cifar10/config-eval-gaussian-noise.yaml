@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/gaussian_noise/cifar10_resnet18/resnet18_10_cifar10_20260507_155927/checkpoints/best.pth
+  weights_path: outputs/train/gaussian_noise/cifar10_resnet18/resnet18_10_cifar10_20260508_155611/checkpoints/best.pth
   pretrained: true
   num_classes: 10
 

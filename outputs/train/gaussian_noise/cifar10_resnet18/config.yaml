@@ -30,7 +30,7 @@ train:
   save_dir: ./outputs/train/gaussian_noise/cifar10_resnet18
   save_best: true
   save_last: true
-  metric_for_best_model: eval_noisy_loss
+  metric_for_best_model: eval_noisy_acc
   metric_mode_for_best_model: max
 
   optimizer:

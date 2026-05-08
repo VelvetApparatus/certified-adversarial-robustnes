@@ -30,7 +30,7 @@ training:
   save_dir: ./outputs/train/trades/cifar10_resnet18
   save_best: true
   save_last: true
-  metric_for_best_model: eval_macer_acc
+  metric_for_best_model: eval_pgd_acc
   metric_mode_for_best_model: max
 
   optimizer:
@@ -63,6 +63,14 @@ trades_params:
   perturb_steps: 10
   beta: 6.0
   distance: l_inf
+
+pgd:
+  name: pgd
+  epsilon: 0.031372549  # 8/255
+  alpha: 0.007843137    # 2/255
+  steps: 10
+  norm: Linf
+  loss_fn: cross_entropy
 
 normalization:
   enabled: true

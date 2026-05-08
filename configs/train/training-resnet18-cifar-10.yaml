@@ -21,7 +21,7 @@ attacks:
     epsilon: 0.03137
     loss_fn: cross_entropy
 
-  - name: pgd
+  pgd
     epsilon: 0.03137
     alpha: 0.00784
     steps: 20

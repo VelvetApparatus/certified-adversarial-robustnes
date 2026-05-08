@@ -51,6 +51,11 @@ def main():
         # kwargs
         metric_prefix="pgd",
         adversary=adversary,
+        step_size=config.params.step_size,
+        epsilon=config.params.epsilon,
+        perturb_steps=config.pgd.steps,
+        beta=config.params.beta,
+
     )
 
 
