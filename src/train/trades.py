@@ -93,6 +93,7 @@ def trades_train_one_epoch(
         perturb_steps: int,
         beta: float,
         distance: str = "l_inf",
+        **kwargs
 ):
     """
     One training epoch for TRADES.

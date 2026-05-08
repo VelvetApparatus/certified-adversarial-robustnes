@@ -13,6 +13,7 @@ def adversarial_train_one_epoch(
         device,
         epoch: int,
         adversarial_config: AdversarialTrainingConfig,
+        **kwargs,
 ):
     model.train()
 

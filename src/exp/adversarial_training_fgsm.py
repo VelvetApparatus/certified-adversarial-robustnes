@@ -46,5 +46,5 @@ def main():
         adversarial_config=cfg
     )
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
