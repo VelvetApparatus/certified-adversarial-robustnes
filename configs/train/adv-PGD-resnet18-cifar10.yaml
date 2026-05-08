@@ -68,8 +68,11 @@ pgd:
 
 fgsm:
   name: fgsm
-  epsilon: 0.031
+  epsilon: 0.031372549
+  alpha: 0.007843137
+  random_start: true
   loss_fn: cross_entropy
+
 
 normalization:
   enabled: true
