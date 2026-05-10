@@ -4,7 +4,7 @@ import shutil
 
 from src.eval.validation import evaluate_adversarial
 from src.config.adversarial_training import load_adversarial_training_config
-from src.adversaries.pgd import PGD
+from src.robustness.adversaries import PGD
 from src.train.common import train
 from src.train.adversarial_training import adversarial_train_one_epoch
 from src.pkg import get_device, get_loss_fn

@@ -1,5 +1,3 @@
-# src/exp/macer.py
-
 import argparse
 
 from src.config.macer import load_macer_training_config

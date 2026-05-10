@@ -292,6 +292,12 @@ def _parse_smooth_adv_params(cfg: dict) -> SmoothAdvTrainingParams:
         default_value=0.25,
     )
 
+    beta, beta_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="beta",
+        default_value=1,
+    )
+
     return SmoothAdvTrainingParams(
         sigma=sigma,
         sigma_scheduler=sigma_scheduler,
@@ -303,4 +309,6 @@ def _parse_smooth_adv_params(cfg: dict) -> SmoothAdvTrainingParams:
         norm=cfg.get("norm", "l2"),
         train_multi_noise=bool(cfg.get("train_multi_noise", True)),
         clamp_noisy=bool(cfg.get("clamp_noisy", True)),
+        beta=beta,
+        beta_scheduler=beta_scheduler,
     )

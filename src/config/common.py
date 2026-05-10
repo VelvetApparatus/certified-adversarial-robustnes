@@ -281,5 +281,8 @@ class SmoothAdvTrainingParams:
     num_noise_vec: int = 2
     norm: str = "l2"
 
+    beta: float = 16.0
+    beta_scheduler: Optional[LinearScheduleConfig] = None
+
     train_multi_noise: bool = True
     clamp_noisy: bool = True

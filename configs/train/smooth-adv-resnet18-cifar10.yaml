@@ -45,7 +45,7 @@ training:
     step_size: 30
     gamma: 0.1
     eta_min: 0.0
-    milestones: []
+    milestones: [ ]
 
   wandb:
     enabled: true
@@ -90,7 +90,18 @@ params:
   # Practical CIFAR version: keep images in [0,1] after noise.
   clamp_noisy: true
 
+  # beta is inverse temperature parameter
+  beta:
+    value: 4.0
+    scheduler:
+      enabled: true
+      type: linear
+      start: 1.0
+      end: 4.0
+      warmup_epochs: 10
+      ramp_epochs: 30
+
 normalization:
   enabled: true
-  mean: [0.4914, 0.4822, 0.4465]
-  std: [0.2470, 0.2435, 0.2616]
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2470, 0.2435, 0.2616 ]
