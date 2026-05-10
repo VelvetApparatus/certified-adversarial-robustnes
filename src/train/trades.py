@@ -3,86 +3,7 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
-
-def _l2_normalize(tensor: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
-    flat = tensor.reshape(tensor.size(0), -1)
-    norm = flat.norm(p=2, dim=1).reshape(-1, 1, 1, 1)
-    return tensor / (norm + eps)
-
-
-def _project_l2(delta: torch.Tensor, epsilon: float, eps: float = 1e-12) -> torch.Tensor:
-    flat = delta.reshape(delta.size(0), -1)
-    norm = flat.norm(p=2, dim=1).reshape(-1, 1, 1, 1)
-
-    factor = torch.clamp(epsilon / (norm + eps), max=1.0)
-    return delta * factor
-
-
-def generate_trades_adversarial_examples(
-        model,
-        x,
-        step_size: float,
-        epsilon: float,
-        perturb_steps: int,
-        distance: str = "l_inf",
-):
-    distance = distance.lower()
-
-    was_training = model.training
-    model.eval()
-
-    with torch.no_grad():
-        clean_probs = F.softmax(model(x), dim=1)
-
-    if distance in ("l_inf", "linf", "inf"):
-        x_adv = x.detach() + torch.empty_like(x).uniform_(-epsilon, epsilon)
-        x_adv = torch.clamp(x_adv, 0.0, 1.0)
-
-    elif distance in ("l2", "l_2"):
-        delta = torch.randn_like(x)
-        delta = _l2_normalize(delta) * epsilon
-        x_adv = x.detach() + delta
-        x_adv = torch.clamp(x_adv, 0.0, 1.0)
-
-    else:
-        raise ValueError(f"Unsupported TRADES distance: {distance}")
-
-    for _ in range(perturb_steps):
-        x_adv = x_adv.detach().requires_grad_(True)
-
-        logits_adv = model(x_adv)
-
-        loss_kl = F.kl_div(
-            F.log_softmax(logits_adv, dim=1),
-            clean_probs,
-            reduction="batchmean",
-        )
-
-        grad = torch.autograd.grad(
-            loss_kl,
-            x_adv,
-            retain_graph=False,
-            create_graph=False,
-        )[0]
-
-        if distance in ("l_inf", "linf", "inf"):
-            x_adv = x_adv.detach() + step_size * torch.sign(grad.detach())
-            x_adv = torch.max(torch.min(x_adv, x + epsilon), x - epsilon)
-            x_adv = torch.clamp(x_adv, 0.0, 1.0)
-
-        elif distance in ("l2", "l_2"):
-            grad_normalized = _l2_normalize(grad.detach())
-            x_adv = x_adv.detach() + step_size * grad_normalized
-
-            delta = x_adv - x
-            delta = _project_l2(delta, epsilon)
-            x_adv = x + delta
-            x_adv = torch.clamp(x_adv, 0.0, 1.0)
-
-    if was_training:
-        model.train()
-
-    return x_adv.detach()
+from src.robustness.adversaries.common import Adversary
 
 
 def trades_train_one_epoch(
@@ -91,13 +12,9 @@ def trades_train_one_epoch(
         criterion,
         optimizer,
         device,
+        pgd: Adversary,
         epoch: int,
-        step_size: float,
-        epsilon: float,
-        perturb_steps: int,
         beta: float,
-        distance: str = "l_inf",
-        **kwargs
 ):
     """
     One training epoch for TRADES.
@@ -129,14 +46,7 @@ def trades_train_one_epoch(
         batch_size = y.size(0)
         total_samples += batch_size
 
-        x_adv = generate_trades_adversarial_examples(
-            model=model,
-            x=x,
-            step_size=step_size,
-            epsilon=epsilon,
-            perturb_steps=perturb_steps,
-            distance=distance,
-        )
+        x_adv = pgd.gen(model=model, x=x, y=None)
         x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
         model.train()

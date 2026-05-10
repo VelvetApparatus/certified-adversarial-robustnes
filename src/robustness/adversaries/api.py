@@ -1,10 +1,8 @@
 from typing import List
 
-from src.config._parsers import AttackConfig, StAdvAttackConfig, FGSMAttackConfig, PGDAttackConfig
+from src.config._parsers import AttackConfig, FGSMAttackConfig, PGDAttackConfig
 from src.robustness.adversaries.fgsm import FGSMAttack
 from src.robustness.adversaries.pgd import PGD
-from src.robustness.adversaries.stadv import StAdv
-from src.pkg.get_loss_fn import get_loss_fn
 
 
 def get_adversaries(
@@ -13,33 +11,22 @@ def get_adversaries(
     adversaries = []
 
     for attack in cfg:
-        loss_fn = get_loss_fn(attack.loss_fn)
 
         if isinstance(attack, FGSMAttackConfig):
             adversaries.append(
                 FGSMAttack(
-                    attack.epsilon,
-                    loss_fn,
+                    eps=attack.epsilon,
+                    loss_fn=attack.loss_fn,
                 )
             )
         elif isinstance(attack, PGDAttackConfig):
             adversaries.append(
                 PGD(
-                    attack.epsilon,
-                    attack.alpha,
-                    attack.steps,
-                    loss_fn,
-                    attack.norm,
-                )
-            )
-        elif isinstance(attack, StAdvAttackConfig):
-            adversaries.append(
-                StAdv(
-                    attack.steps,
-                    attack.alpha,
-                    attack.tau,
-                    loss_fn,
-                    attack.targeted,
+                    epsilon=attack.epsilon,
+                    alpha=attack.alpha,
+                    steps=attack.steps,
+                    lossfn=attack.loss_fn,
+                    norm=attack.norm,
                 )
             )
         else:

@@ -3,7 +3,7 @@ import os
 import argparse
 import shutil
 
-from src.robustness.adversaries import PGD
+from src.robustness.adversaries.pgd import PGD
 from src.config.trades import load_trades_config
 from src.pkg import *
 from src.eval.validation import evaluate_adversarial
@@ -25,11 +25,11 @@ def main():
     shutil.copy(args.config, os.path.join(config.training.save_dir, "config.yaml"))
 
     adversary = PGD(
-        epsilon=config.pgd.epsilon,
-        alpha=config.pgd.alpha,
-        steps=config.pgd.steps,
+        epsilon=config.evalPGD.epsilon,
+        alpha=config.evalPGD.alpha,
+        steps=config.evalPGD.steps,
         loss_fn=get_loss_fn(config.training.criterion),
-        norm=config.pgd.norm,
+        norm=config.evalPGD.norm,
     )
 
     train(
@@ -53,7 +53,7 @@ def main():
         adversary=adversary,
         step_size=config.params.step_size,
         epsilon=config.params.epsilon,
-        perturb_steps=config.pgd.steps,
+        perturb_steps=config.evalPGD.steps,
         beta=config.params.beta,
 
     )

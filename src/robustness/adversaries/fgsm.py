@@ -1,13 +1,16 @@
+from typing_extensions import Literal
+
 from src.robustness.adversaries.common import Adversary
 import torch
 import torch.nn as nn
+from src.pkg.get_loss_fn import get_loss_fn
 
 
 class FGSMAttack(Adversary):
     def __init__(
             self,
             eps,
-            loss_fn=None,
+            loss_fn: Literal["cross_entropy"] = "cross_entropy",
             alpha=None,
             random_start: bool = False,
     ):
@@ -23,6 +26,7 @@ class FGSMAttack(Adversary):
         self.eps = eps
         self.alpha = alpha if alpha is not None else eps
         self.random_start = random_start
+        self.loss_fn = get_loss_fn(loss_fn)
 
     def __repr__(self):
         return "FGSM attack (eps={eps})".format(eps=self.eps)
