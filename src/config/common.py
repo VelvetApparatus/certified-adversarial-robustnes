@@ -286,3 +286,18 @@ class SmoothAdvTrainingParams:
 
     train_multi_noise: bool = True
     clamp_noisy: bool = True
+
+
+@dataclass
+class AWPParams:
+
+    weights_diff_coef: float = 0.0
+    weights_epsilon: float = 0.0
+
+    # steps to ignore weights perturbation step
+    warmup_steps: int = 10
+
+    # beta is a robust loss coefficient
+    # loss = classification loss + beta * robust_loss
+    beta: float = 0.3
+    beta_scheduler: Optional[LinearScheduleConfig] = None
