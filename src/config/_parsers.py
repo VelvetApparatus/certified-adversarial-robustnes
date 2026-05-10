@@ -3,7 +3,7 @@ from typing import Optional
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
     OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, CertificationParams, TradesParams, \
     EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, MacerTrainingParams, NormalizeConfig, \
-    LinearScheduleConfig, SmoothAdvTrainingParams
+    LinearScheduleConfig, SmoothAdvTrainingParams, AWPParams
 
 
 def _parse_linear_schedule(cfg: Optional[dict]) -> LinearScheduleConfig:
@@ -309,6 +309,24 @@ def _parse_smooth_adv_params(cfg: dict) -> SmoothAdvTrainingParams:
         norm=cfg.get("norm", "l2"),
         train_multi_noise=bool(cfg.get("train_multi_noise", True)),
         clamp_noisy=bool(cfg.get("clamp_noisy", True)),
+        beta=beta,
+        beta_scheduler=beta_scheduler,
+    )
+
+
+def _parse_awp_params(cfg: dict) -> AWPParams:
+    cfg = cfg or {}
+
+    beta, beta_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="beta",
+        default_value=0.1,
+    )
+
+    return AWPParams(
+        weights_epsilon=cfg.get("weights_epsilon", 0.01),
+        weights_diff_coef=cfg.get("weights_diff_coef", 0.01),
+        warmup_steps=cfg.get("warmup_steps", 100),
         beta=beta,
         beta_scheduler=beta_scheduler,
     )
