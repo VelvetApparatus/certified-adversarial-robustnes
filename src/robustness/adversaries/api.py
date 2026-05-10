@@ -1,9 +1,9 @@
 from typing import List
 
 from src.config._parsers import AttackConfig, StAdvAttackConfig, FGSMAttackConfig, PGDAttackConfig
-from src.adversaries.fgsm import FGSMAttack
-from src.adversaries.pgd import PGD
-from src.adversaries.stadv import StAdv
+from src.robustness.adversaries.fgsm import FGSMAttack
+from src.robustness.adversaries.pgd import PGD
+from src.robustness.adversaries.stadv import StAdv
 from src.pkg.get_loss_fn import get_loss_fn
 
 

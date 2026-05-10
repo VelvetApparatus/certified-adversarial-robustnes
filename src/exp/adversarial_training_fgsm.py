@@ -3,7 +3,7 @@ import os
 import shutil
 
 from src.config.adversarial_training import load_adversarial_training_config
-from src.adversaries.fgsm import FGSMAttack
+from src.robustness.adversaries import FGSMAttack
 from src.train.common import train
 from src.train.adversarial_training import adversarial_train_one_epoch
 from src.pkg import get_device, get_loss_fn

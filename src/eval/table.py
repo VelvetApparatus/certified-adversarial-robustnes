@@ -1,5 +1,5 @@
-from src.adversaries.fgsm import FGSMAttack
-from src.adversaries.pgd import PGD
+from src.robustness.adversaries.fgsm import FGSMAttack
+from src.robustness.adversaries.pgd import PGD
 from src.config.common import PGDAttackConfig, FGSMAttackConfig
 from src.pkg import get_loss_fn
 

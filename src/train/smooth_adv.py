@@ -59,6 +59,7 @@ def generate_smooth_adv_examples(
     model is expected to handle normalization internally.
     """
 
+    was_training = model.training
     model.eval()
 
     norm = norm.lower()
@@ -68,6 +69,7 @@ def generate_smooth_adv_examples(
 
     batch_size = x.size(0)
 
+    # calculate delta for a specific norm
     if norm == "l2":
         delta = torch.randn_like(x)
         delta = _l2_normalize(delta) * torch.empty(
@@ -85,6 +87,8 @@ def generate_smooth_adv_examples(
 
     y_rep = y.repeat_interleave(num_noise_vec)
 
+
+    # iteratively add noise to input
     for _ in range(steps):
         x_adv.requires_grad_(True)
 
@@ -93,15 +97,18 @@ def generate_smooth_adv_examples(
             num_noise_vec=num_noise_vec,
         )
 
+        # add gaussian noise
         noise = torch.randn_like(x_adv_rep) * sigma
         x_noisy_adv = x_adv_rep + noise
 
+        # clamp in pixel space
         if clamp_noisy:
             x_noisy_adv = torch.clamp(x_noisy_adv, 0.0, 1.0)
 
         logits = model(x_noisy_adv)
         loss = F.cross_entropy(logits, y_rep)
 
+        # calculate gradient for adversarial examples
         grad = torch.autograd.grad(
             loss,
             x_adv,
@@ -109,6 +116,7 @@ def generate_smooth_adv_examples(
             create_graph=False,
         )[0]
 
+        # project to epsilon
         if norm == "l2":
             x_adv = x_adv.detach() + step_size * _l2_normalize(grad.detach())
             delta = x_adv - x
@@ -120,7 +128,8 @@ def generate_smooth_adv_examples(
 
         x_adv = torch.clamp(x + delta, 0.0, 1.0).detach()
 
-    model.train()
+    if was_training:
+        model.train()
 
     return x_adv.detach()
 
@@ -174,6 +183,7 @@ def smooth_adv_loss(
     noise = torch.randn_like(x_adv_train) * sigma
     x_noisy_adv = x_adv_train + noise
 
+    # clamp in pixel space
     if clamp_noisy:
         x_noisy_adv = torch.clamp(x_noisy_adv, 0.0, 1.0)
 

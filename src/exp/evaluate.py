@@ -6,7 +6,7 @@ from src.config.evaluation import load_evaluate_config
 from src.db.api import get_dataset
 from src.model.api import get_model
 import pandas as pd
-from src.evaluation.table import evaluate
+from src.eval.table import evaluate
 from src.certify.table import certify
 from src.pkg import (
     get_device,

@@ -2,6 +2,8 @@ import torch
 import torch.nn.functional as F
 from torch.distributions import Normal
 
+from src.config.common import get_scheduled
+
 
 @torch.no_grad()
 def evaluate_clean(
@@ -128,10 +130,12 @@ def evaluate_smoothed(
         model,
         loader,
         device,
+        epoch,
         sigma: float,
         num_classes: int,
         samples: int = 32,
         beta: float = 1.0,
+        beta_scheduler=None,
         eps: float = 1e-6,
         clamp: bool = True,
         **kwargs
@@ -200,6 +204,10 @@ def evaluate_smoothed(
     total_margin_all = 0.0
     total_radius_all = 0.0
 
+
+    beta_eff = get_scheduled(beta, schedule=beta_scheduler, epoch=epoch)
+
+
     for x, y in loader:
         x = x.to(device, non_blocking=True)
         y = y.to(device, non_blocking=True)
@@ -233,7 +241,7 @@ def evaluate_smoothed(
         total_smoothed_correct += smoothed_correct.sum().item()
 
         # Temperature-scaled probabilities for MACER-style proxy radius.
-        beta_probs = F.softmax(beta * logits, dim=2).mean(dim=1)
+        beta_probs = F.softmax(beta_eff * logits, dim=2).mean(dim=1)
         beta_probs = beta_probs.clamp(min=eps, max=1.0 - eps)
 
         p_y = beta_probs.gather(1, y.reshape(-1, 1)).squeeze(1)

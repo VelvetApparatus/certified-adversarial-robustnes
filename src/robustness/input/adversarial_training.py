@@ -1,7 +1,7 @@
 import torch
 
 from src.robustness.input.common import RobustnessRegularization
-from src.adversaries.common import Adversary
+from src.robustness.adversaries import Adversary
 
 
 class AdversarialGenerator(RobustnessRegularization):

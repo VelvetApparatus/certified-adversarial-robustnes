@@ -3,7 +3,7 @@ import os
 import argparse
 import shutil
 
-from src.adversaries.pgd import PGD
+from src.robustness.adversaries import PGD
 from src.config.trades import load_trades_config
 from src.pkg import *
 from src.eval.validation import evaluate_adversarial
