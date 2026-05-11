@@ -125,6 +125,7 @@ def train(
         loss_fn,
         train_epoch_fn: Callable,
         eval_fn: Callable,
+        model: torch.nn.Module = None, 
         config_path: str | None = None,
         optimizer=None,
         model_is_prepared: bool = False,

@@ -21,7 +21,7 @@ class FGSMAttack(Adversary):
                 "alpha": alpha if alpha is not None else eps,
                 "random_start": random_start,
             },
-            loss_fn=loss_fn or nn.CrossEntropyLoss(),
+            # loss_fn=loss_fn or nn.CrossEntropyLoss(),
         )
         self.eps = eps
         self.alpha = alpha if alpha is not None else eps

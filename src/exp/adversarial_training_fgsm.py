@@ -1,7 +1,7 @@
 import argparse
 
 from src.config.adversarial_training import load_adversarial_training_config
-from src.robustness.adversaries import FGSMAttack
+from src.robustness.adversaries.fgsm import FGSMAttack
 from src.train.common import train
 from src.train.adversarial_training import adversarial_train_one_epoch
 from src.pkg import get_device, get_loss_fn
@@ -17,7 +17,9 @@ def main():
 
     adversary = FGSMAttack(
         eps=cfg.fgsm.epsilon,
-        loss_fn=get_loss_fn(cfg.training.criterion)
+        loss_fn=cfg.fgsm.loss_fn,
+        alpha=0.00784,
+        random_start=True
     )
 
     device = get_device()
@@ -25,7 +27,7 @@ def main():
         name="aversarial_training_fgsm",
         cfg=cfg.training,
         norm_cfg=cfg.normalization,
-        model=cfg.model,
+        model_cfg=cfg.model,
         device=device,
         train_dataset_config=cfg.dataset,
         split_config=cfg.split,

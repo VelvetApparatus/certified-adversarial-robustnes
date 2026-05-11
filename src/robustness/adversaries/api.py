@@ -77,3 +77,4 @@ def get_adversaries(
         )
         for attack in cfg
     ]
+
