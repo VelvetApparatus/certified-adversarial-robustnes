@@ -134,7 +134,6 @@ class SmoothedAttackConfig:
     alpha_scheduler: Optional[LinearScheduleConfig] = None
 
 
-
 @dataclass
 class StAdvAttackConfig:
     name: Literal["stadv"]
