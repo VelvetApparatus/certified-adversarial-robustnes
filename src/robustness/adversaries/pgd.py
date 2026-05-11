@@ -2,7 +2,7 @@ from typing import Literal
 
 import torch
 from torch import nn
-
+from torch.nn import functional as F
 from src.robustness.adversaries.common import Adversary
 
 
@@ -12,26 +12,37 @@ class PGD(Adversary):
             epsilon: float,
             alpha: float,
             steps: int,
-            loss_fn: nn.Module,
+            lossfn: Literal["cross_entropy", "kl_divergence"] = "cross_entropy",
             norm: Literal["Linf", "l2"] = "Linf",
             random_start: bool = True,
     ):
+
+        if lossfn not in ["cross_entropy", "kl_divergence"]:
+            raise NotImplementedError(f"Unsupported lossfn: {lossfn}")
+
+        self.kl_divergence = lossfn == "kl_divergence"
+
+        if lossfn == "cross_entropy":
+            self.loss_fn = nn.CrossEntropyLoss()
+        else:
+            self.loss_fn = nn.KLDivLoss(reduction="batchmean")
+
         super(PGD, self).__init__(
             name="PGD",
-            loss_fn=loss_fn,
             params={
                 "epsilon": epsilon,
                 "alpha": alpha,
                 "steps": steps,
                 "norm": norm,
                 "random_start": random_start,
+                "loss_fn": lossfn,
             },
         )
 
         self.epsilon = epsilon
         self.alpha = alpha
         self.steps = steps
-        self.norm = norm
+        self.norm = norm.lower()
         self.random_start = random_start
 
     def __repr__(self):
@@ -41,6 +52,8 @@ class PGD(Adversary):
             f"alpha={self.alpha}, "
             f"steps={self.steps}, "
             f"norm={self.norm}"
+            f"random_start={self.random_start}"
+            f"loss_fn={self.loss_fn}"
             f")"
         )
 
@@ -48,10 +61,24 @@ class PGD(Adversary):
         return self.__repr__()
 
     def _gen(self, model, X, y):
+        """
+
+        :param model: nn.Module
+        :param X: input data
+        :param y: target data, omitted in TRADES-style regime (loss_fn=kl_divergence)
+        :return:
+        X_adv: adversarial examples
+        """
         X_orig = X.detach().clone()
 
+        if self.kl_divergence:
+            with torch.no_grad():
+                clean_probs = F.softmax(model(X_orig), dim=1)
+
+        # Random start to avoid gradient masking
+        # https://arxiv.org/abs/1802.00420
         if self.random_start:
-            if self.norm == "Linf":
+            if self.norm == "linf":
                 delta = torch.empty_like(X_orig).uniform_(
                     -self.epsilon,
                     self.epsilon,
@@ -78,16 +105,24 @@ class PGD(Adversary):
         else:
             X_adv = X_orig.clone()
 
+        # iterative generation
         for _ in range(self.steps):
             X_adv = X_adv.detach()
             X_adv.requires_grad_(True)
 
-            logits = model(X_adv)
-            loss = self.loss_fn(logits, y)
+            logits_adv = model(X_adv)
+
+            if self.kl_divergence:
+                loss = self.loss_fn(
+                    F.log_softmax(logits_adv, dim=1),
+                    clean_probs,
+                )
+            else:
+                loss = self.loss_fn(logits_adv, y)
 
             grad = torch.autograd.grad(loss, X_adv)[0]
 
-            if self.norm == "Linf":
+            if self.norm == "linf":
                 X_adv = X_adv.detach() + self.alpha * grad.sign()
 
             elif self.norm == "l2":
@@ -99,7 +134,7 @@ class PGD(Adversary):
 
             delta = X_adv - X_orig
 
-            if self.norm == "Linf":
+            if self.norm == "linf":
                 delta = self.l_inf_projection(delta, self.epsilon)
 
             elif self.norm == "l2":

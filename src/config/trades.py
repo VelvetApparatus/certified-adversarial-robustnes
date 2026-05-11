@@ -18,7 +18,8 @@ class TradesConfig:
     dataset: DatasetConfig
     split: DatasetSplitConfig
     normalization: NormalizeConfig
-    pgd: PGDAttackConfig
+    evalPGD: PGDAttackConfig
+    trainPGD: PGDAttackConfig
 
 
 def load_trades_config(path: str) -> TradesConfig:
@@ -48,5 +49,6 @@ def load_trades_config(path: str) -> TradesConfig:
         dataset=_parse_dataset(raw["dataset"]),
         split=_parse_dataset_split(raw["split"]),
         normalization=_parse_normalization(raw["normalization"]),
-        pgd=_parse_pgd(raw["pgd"])
+        evalPGD=_parse_pgd(raw["eval_pgd"]),
+        trainPGD=_parse_pgd(raw["train_pgd"]),
     )

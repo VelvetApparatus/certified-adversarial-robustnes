@@ -112,6 +112,7 @@ class PGDAttackConfig:
     steps: int
     norm: NormName = "Linf"
     loss_fn: LossName = "cross_entropy"
+    random_start = True
 
 
 @dataclass

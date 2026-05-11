@@ -193,6 +193,7 @@ def _parse_pgd(cfg: Optional[dict]) -> PGDAttackConfig:
         steps=cfg.get("steps", 100),
         norm=cfg.get("norm", "l2"),
         loss_fn=cfg.get("loss_fn", None),
+        random_start=cfg.get("random_start", True)
     )
 
 
