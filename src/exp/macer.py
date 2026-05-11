@@ -26,6 +26,7 @@ def main():
         train_dataset_config=cfg.dataset,
         split_config=cfg.split,
         loss_fn=loss_fn,
+        config_path=args.config,
 
         # eval
         eval_fn=evaluate_smoothed,

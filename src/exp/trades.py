@@ -1,7 +1,5 @@
 from __future__ import print_function
-import os
 import argparse
-import shutil
 
 from src.robustness.adversaries.pgd import PGD
 from src.config.trades import load_trades_config
@@ -21,9 +19,6 @@ def main():
     device = get_device()
     set_seed(config.params.seed)
 
-    os.makedirs(config.training.save_dir, exist_ok=True)
-    shutil.copy(args.config, os.path.join(config.training.save_dir, "config.yaml"))
-
     adversary = PGD(
         epsilon=config.evalPGD.epsilon,
         alpha=config.evalPGD.alpha,
@@ -41,6 +36,7 @@ def main():
         train_dataset_config=config.dataset,
         split_config=config.split,
         loss_fn=get_loss_fn(config.training.criterion),
+        config_path=args.config,
 
         # train epoch
         train_epoch_fn=trades_train_one_epoch,

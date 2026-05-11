@@ -24,6 +24,7 @@ def main():
         split_config=config.split,
         device=device,
         loss_fn=get_loss_fn(config.training.criterion),
+        config_path=args.config,
 
         # train epoch fn
         train_epoch_fn=smooth_adv_train_one_epoch,

@@ -1,6 +1,7 @@
 import datetime
 import math
 import os
+import shutil
 from typing import Callable, Literal
 
 import torch
@@ -114,6 +115,7 @@ def train(
         loss_fn,
         train_epoch_fn: Callable,
         eval_fn: Callable,
+        config_path: str | None = None,
         optimizer=None,
         training_kwargs: dict | None = None,
         eval_kwargs: dict | None = None,
@@ -143,6 +145,9 @@ def train(
     output_dir = os.path.join(cfg.save_dir, run_name)
     checkpoints_dir = os.path.join(output_dir, "checkpoints")
     os.makedirs(checkpoints_dir, exist_ok=True)
+
+    if config_path is not None:
+        shutil.copy(config_path, os.path.join(output_dir, "config.yaml"))
 
     start_epoch = 1
     best_metric_mode = resolve_metric_mode(

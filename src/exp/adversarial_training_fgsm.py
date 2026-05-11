@@ -1,6 +1,4 @@
 import argparse
-import os
-import shutil
 
 from src.config.adversarial_training import load_adversarial_training_config
 from src.robustness.adversaries import FGSMAttack
@@ -16,8 +14,6 @@ args = arg_parser.parse_args()
 
 def main():
     cfg = load_adversarial_training_config(args.config)
-    os.makedirs(cfg.training.save_dir, exist_ok=True)
-    shutil.copy(args.config, os.path.join(cfg.training.save_dir, "config.yaml"))
 
     adversary = FGSMAttack(
         eps=cfg.fgsm.epsilon,
@@ -34,6 +30,7 @@ def main():
         train_dataset_config=cfg.dataset,
         split_config=cfg.split,
         loss_fn=get_loss_fn(cfg.training.criterion),
+        config_path=args.config,
         # train epoch
         train_epoch_fn=adversarial_train_one_epoch,
 

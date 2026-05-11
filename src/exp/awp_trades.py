@@ -1,7 +1,5 @@
 import argparse
 import copy
-import shutil
-import os
 
 from src.config.awp import load_awp_config
 from src.eval.validation import evaluate_adversarial
@@ -22,9 +20,6 @@ def main():
 
     device = get_device()
     set_seed(config.training.seed)
-
-    os.makedirs(config.training.save_dir, exist_ok=True)
-    shutil.copy(args.config, os.path.join(config.training.save_dir, "config.yaml"))
 
     adversary = PGD(
         epsilon=config.pgd.epsilon,
@@ -59,6 +54,7 @@ def main():
         train_dataset_config=config.dataset,
         split_config=config.split,
         loss_fn=get_loss_fn(config.training.criterion),
+        config_path=args.config,
 
         # train epoch
         train_epoch_fn=trades_awp_train,
