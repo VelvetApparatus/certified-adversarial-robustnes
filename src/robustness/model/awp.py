@@ -108,7 +108,7 @@ class AWPCrossEntropy(TradesAWP):
             self,
             inputs_adv,
             targets,
-            beta,
+            beta=None,
             inputs_clean=None,
     ):
         self.proxy.load_state_dict(self.model.state_dict())
