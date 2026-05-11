@@ -1,4 +1,5 @@
 import argparse
+import copy
 import shutil
 import os
 
@@ -35,13 +36,15 @@ def main():
     )
 
     model = get_model(config.model, device).to(device)
-
     optimizer = get_optimizer(model, config.training.optimizer)
+
+    proxy = copy.deepcopy(model).to(device)
+    proxy_optim = get_optimizer(proxy, config.awp.proxy_optimizer)
 
     awp = TradesAWP(
         model=model,
-        proxy=model,
-        proxy_optim=optimizer,
+        proxy=proxy,
+        proxy_optim=proxy_optim,
         wcoef=config.awp.weights_diff_coef,
         weps=config.awp.weights_epsilon,
     )
@@ -49,7 +52,8 @@ def main():
     train(
         name="AWP+TRADES",
         cfg=config.training,
-        model=config.model,
+        model=model,
+        optimizer=optimizer,
         norm_cfg=config.normalization,
         device=device,
         train_dataset_config=config.dataset,

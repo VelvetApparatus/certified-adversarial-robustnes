@@ -124,7 +124,10 @@ def train(
         split_cfg=split_config,
     )
 
-    optimizer = get_optimizer(model, cfg.optimizer)
+    optimizer = kwargs.pop("optimizer", None)
+    if optimizer is None:
+        optimizer = get_optimizer(model, cfg.optimizer)
+
     scheduler = get_scheduler(optimizer, cfg.scheduler, epochs=cfg.epochs)
 
     run_name = "{}_{}_{}".format(
