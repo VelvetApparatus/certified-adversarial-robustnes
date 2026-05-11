@@ -19,7 +19,7 @@ def main():
         name="smooth_adv",
         cfg=config.training,
         norm_cfg=config.normalization,
-        model=config.model,
+        model_cfg=config.model,
         train_dataset_config=config.dataset,
         split_config=config.split,
         device=device,
