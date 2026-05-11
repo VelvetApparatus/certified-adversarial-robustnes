@@ -33,7 +33,7 @@ run_job() {
   echo
 }
 
-# run_job "adversarial_train" "./cmd/adversarial_training.sh"
+# run_job "adversarial_train" "./cmd/adversarial_training_pgd.sh"
 # run_job "adversarial_train_fgsm" "./cmd/adversarial_training_fgsm.sh"
 # run_job "macer" "./cmd/macer.sh"
 # run_job "smooth_adv" "./cmd/smooth_adv.sh"

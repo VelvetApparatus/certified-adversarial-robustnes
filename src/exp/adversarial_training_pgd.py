@@ -31,7 +31,7 @@ def main():
         name="aversarial_training_pgd",
         cfg=cfg.training,
         norm_cfg=cfg.normalization,
-        model_cfg=cfg.model,
+        model=cfg.model,
         device=device,
         train_dataset_config=cfg.dataset,
         split_config=cfg.split,

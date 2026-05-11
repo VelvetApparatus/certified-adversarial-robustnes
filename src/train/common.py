@@ -107,7 +107,7 @@ def train(
         name: str,
         cfg: TrainingConfig,
         norm_cfg: NormalizeConfig,
-        model_cfg: ModelConfig,
+        model: ModelConfig | torch.nn.Module,
         device,
         train_dataset_config: DatasetConfig,
         split_config: DatasetSplitConfig,
@@ -116,7 +116,8 @@ def train(
         eval_fn: Callable,
         **kwargs,
 ):
-    model = get_model(model_cfg, device).to(device)
+    if isinstance(model, ModelConfig):
+        model = get_model(model, device).to(device)
 
     train_loader, eval_loader, train_dataset, eval_dataset = build_train_eval_loaders(
         dataset_cfg=train_dataset_config,
@@ -127,7 +128,7 @@ def train(
     scheduler = get_scheduler(optimizer, cfg.scheduler, epochs=cfg.epochs)
 
     run_name = "{}_{}_{}".format(
-        model_cfg.name,
+        model.name,
         train_dataset_config.name,
         datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
     )
@@ -183,7 +184,7 @@ def train(
         name=name,
         cfg=cfg,
         dataset_cfg=train_dataset_config,
-        model_cfg=model_cfg,
+        model_cfg=model,
         split=split_config,
     )
 

@@ -16,6 +16,7 @@ def trades_awp_train(
         adversary: Adversary,
         epoch: int,
         beta: float,
+        **kwargs
 
 ):
     model.train()
