@@ -22,7 +22,9 @@ class AWPTradesConfig:
     trades: TradesParams
     dataset: DatasetConfig
     split: DatasetSplitConfig
-    pgd: PGDAttackConfig
+    evalPGD: PGDAttackConfig
+    trainPGD: PGDAttackConfig
+
     normalization: NormalizeConfig
 
 
@@ -40,8 +42,10 @@ def load_awp_config(path: str) -> AWPTradesConfig:
         raise FileNotFoundError("Dataset not found in config")
     if "split" not in raw:
         raise FileNotFoundError("Split not found in config")
-    if "pgd" not in raw:
-        raise FileNotFoundError("PGD not found in config")
+    if "eval_pgd" not in raw:
+        raise ValueError("Config must contain 'eval_pgd'")
+    if "train_pgd" not in raw:
+        raise ValueError("Config must contain 'train_pgd'")
     if "normalization" not in raw:
         raise FileNotFoundError("Normalization not found in config")
 
@@ -52,6 +56,7 @@ def load_awp_config(path: str) -> AWPTradesConfig:
         trades=_parse_trades_params(raw["trades"]),
         dataset=_parse_dataset(raw["dataset"]),
         split=_parse_dataset_split(raw["split"]),
-        pgd=_parse_pgd(raw["pgd"]),
         normalization=_parse_normalization(raw["normalization"]),
+        evalPGD=_parse_pgd(raw["eval_pgd"]),
+        trainPGD=_parse_pgd(raw["train_pgd"]),
     )

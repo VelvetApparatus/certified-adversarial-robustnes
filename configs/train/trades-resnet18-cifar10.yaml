@@ -64,13 +64,21 @@ trades_params:
   beta: 6.0
   distance: l_inf
 
-pgd:
+train_pgd:
   name: pgd
   epsilon: 0.031372549  # 8/255
   alpha: 0.007843137    # 2/255
   steps: 10
   norm: Linf
-  loss_fn: cross_entropy
+  loss_fn: kl_divergence
+
+eval_pgd:
+  name: pgd
+  epsilon: 0.031372549  # 8/255
+  alpha: 0.007843137    # 2/255
+  steps: 10
+  norm: Linf
+  loss_fn: cross-entropy
 
 normalization:
   enabled: true

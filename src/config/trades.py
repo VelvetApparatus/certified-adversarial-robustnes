@@ -39,8 +39,10 @@ def load_trades_config(path: str) -> TradesConfig:
         raise ValueError("Config must contain 'split'")
     if "normalization" not in raw:
         raise ValueError("Config must contain 'normalization'")
-    if "pgd" not in raw:
-        raise ValueError("Config must contain 'pgd'")
+    if "eval_pgd" not in raw:
+        raise ValueError("Config must contain 'eval_pgd'")
+    if "train_pgd" not in raw:
+        raise ValueError("Config must contain 'train_pgd'")
 
     return TradesConfig(
         training=_parse_training(raw["training"]),

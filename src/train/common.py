@@ -312,30 +312,6 @@ def train(
     }
 
 
-def evaluate_clean(model, test_loader, criterion, device):
-    metrics = init_metrics()
-
-    with torch.no_grad():
-        for x, y in tqdm(test_loader, total=len(test_loader), desc="Clean evaluation"):
-            x = x.to(device, non_blocking=True)
-            y = y.to(device, non_blocking=True)
-
-            batch_size = x.size(0)
-
-            logits = model(x)
-            loss = criterion(logits, y)
-
-            update_metrics(
-                storage=metrics,
-                logits=logits,
-                y=y,
-                loss=loss,
-                batch_size=batch_size,
-            )
-
-    return finalize_metrics(metrics)
-
-
 def init_wandb_if_needed(
         name: str,
         cfg: TrainingConfig,
