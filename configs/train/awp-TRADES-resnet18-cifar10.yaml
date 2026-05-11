@@ -79,7 +79,7 @@ eval_pgd:
   alpha: 0.007843137    # 2/255
   steps: 20
   norm: Linf
-  loss_fn: cross-entropy
+  loss_fn: cross_entropy
   random_start: true
 
 normalization:
