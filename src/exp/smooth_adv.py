@@ -31,17 +31,18 @@ def main():
         # eval epoch fn
         eval_fn=evaluate_smoothed,
 
-        # kwargs
-        # train epoch
-        params=config.params,
-        # eval
-        sigma=config.params.sigma,
-        num_classes=config.model.num_classes,
-        # todo to config
-        samples=64,
-        beta=config.params.beta,
-        beta_scheduler=config.params.beta_scheduler,
-        eps=config.params.epsilon,
+        training_kwargs={
+            "params": config.params,
+        },
+        eval_kwargs={
+            "sigma": config.params.sigma,
+            "num_classes": config.model.num_classes,
+            # todo to config
+            "samples": 64,
+            "beta": config.params.beta,
+            "beta_scheduler": config.params.beta_scheduler,
+            "eps": config.params.epsilon,
+        },
 
     )
 

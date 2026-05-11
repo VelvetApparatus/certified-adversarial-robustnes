@@ -33,15 +33,17 @@ def main():
         # train epoch
         train_epoch_fn=macer_train_one_epoch,
 
-
-        # kwargs
-        params=cfg.params,
-        sigma=cfg.params.sigma,
-        num_classes=cfg.model.num_classes,
-        # todo: add normal config
-        samples=cfg.params.gauss_samples * 4,
-        beta=cfg.params.beta,
-        eps=cfg.params.eps,
+        training_kwargs={
+            "params": cfg.params,
+        },
+        eval_kwargs={
+            "sigma": cfg.params.sigma,
+            "num_classes": cfg.model.num_classes,
+            # todo: add normal config
+            "samples": cfg.params.gauss_samples * 4,
+            "beta": cfg.params.beta,
+            "eps": cfg.params.eps,
+        },
 
     )
 

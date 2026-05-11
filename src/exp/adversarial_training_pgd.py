@@ -43,10 +43,14 @@ def main():
         # eval
         eval_fn=evaluate_adversarial,
 
-        # kwargs
-        metric_prefix="pgd",
-        adversary=adversary,
-        adversarial_config=cfg
+        training_kwargs={
+            "adversary": adversary,
+            "adversarial_config": cfg,
+        },
+        eval_kwargs={
+            "metric_prefix": "pgd",
+            "adversary": adversary,
+        },
     )
 
 if __name__ == "__main__":

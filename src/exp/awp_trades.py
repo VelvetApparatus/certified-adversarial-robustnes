@@ -62,15 +62,17 @@ def main():
 
         # train epoch
         train_epoch_fn=trades_awp_train,
-        # train kwargs
-        awp=awp,
-        awp_warmup=config.awp.warmup_steps,
-        adversary=adversary,
-        beta=config.awp.beta,
-
-        # eval epoch
         eval_fn=evaluate_adversarial,
-        metric_prefix="pgd",
+        training_kwargs={
+            "awp": awp,
+            "awp_warmup": config.awp.warmup_steps,
+            "adversary": adversary,
+            "beta": config.awp.beta,
+        },
+        eval_kwargs={
+            "metric_prefix": "pgd",
+            "adversary": adversary,
+        },
 
     )
 

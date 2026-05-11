@@ -48,13 +48,14 @@ def main():
         # eval
         eval_fn=evaluate_adversarial,
 
-        # kwargs
-        metric_prefix="pgd",
-        adversary=adversary,
-        step_size=config.params.step_size,
-        epsilon=config.params.epsilon,
-        perturb_steps=config.evalPGD.steps,
-        beta=config.params.beta,
+        training_kwargs={
+            "pgd": adversary,
+            "beta": config.params.beta,
+        },
+        eval_kwargs={
+            "metric_prefix": "pgd",
+            "adversary": adversary,
+        },
 
     )
 

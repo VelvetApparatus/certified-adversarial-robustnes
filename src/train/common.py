@@ -114,17 +114,21 @@ def train(
         loss_fn,
         train_epoch_fn: Callable,
         eval_fn: Callable,
-        **kwargs,
+        optimizer=None,
+        training_kwargs: dict | None = None,
+        eval_kwargs: dict | None = None,
 ):
     if isinstance(model, ModelConfig):
         model = get_model(model, device).to(device)
+
+    training_kwargs = dict(training_kwargs or {})
+    eval_kwargs = dict(eval_kwargs or {})
 
     train_loader, eval_loader, train_dataset, eval_dataset = build_train_eval_loaders(
         dataset_cfg=train_dataset_config,
         split_cfg=split_config,
     )
 
-    optimizer = kwargs.pop("optimizer", None)
     if optimizer is None:
         optimizer = get_optimizer(model, cfg.optimizer)
 
@@ -206,7 +210,7 @@ def train(
             optimizer=optimizer,
             epoch=epoch,
             device=device,
-            **kwargs,
+            **training_kwargs,
         )
 
         print("=" * 80)
@@ -217,12 +221,14 @@ def train(
         eval_metrics = None
         if eval_loader is not None:
             model.eval()
+            eval_call_kwargs = dict(eval_kwargs)
+            eval_call_kwargs["epoch"] = epoch
             eval_metrics = eval_fn(
                 model=model,
                 loader=eval_loader,
                 criterion=loss_fn,
                 device=device,
-                **kwargs,
+                **eval_call_kwargs,
             )
 
             print("=" * 80)

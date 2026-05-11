@@ -32,13 +32,16 @@ def main():
         # eval
         eval_fn=evaluate_noisy,
 
-
-        # kwargs
-        sigma=cfg.params.sigma,
-        clean_loss_weight=cfg.params.clean_loss_weight,
-        noisy_loss_weight=cfg.params.noisy_loss_weight,
-        noise_ratio=cfg.params.noise_ratio,
-        normalized_space=cfg.params.normalized_space,
+        training_kwargs={
+            "sigma": cfg.params.sigma,
+            "clean_loss_weight": cfg.params.clean_loss_weight,
+            "noisy_loss_weight": cfg.params.noisy_loss_weight,
+            "noise_ratio": cfg.params.noise_ratio,
+            "normalized_space": cfg.params.normalized_space,
+        },
+        eval_kwargs={
+            "sigma": cfg.params.sigma,
+        },
     )
 
 
