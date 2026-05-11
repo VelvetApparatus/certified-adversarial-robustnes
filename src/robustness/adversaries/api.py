@@ -17,6 +17,7 @@ def get_adversaries(
                 FGSMAttack(
                     eps=attack.epsilon,
                     loss_fn=attack.loss_fn,
+                    random_start=attack.random_start
                 )
             )
         elif isinstance(attack, PGDAttackConfig):
@@ -27,6 +28,7 @@ def get_adversaries(
                     steps=attack.steps,
                     lossfn=attack.loss_fn,
                     norm=attack.norm,
+                    random_start=attack.random_start
                 )
             )
         else:

@@ -30,7 +30,7 @@ def main():
     train(
         "TRADES-training",
         cfg=config.training,
-        model=config.model,
+        model_cfg=config.model,
         norm_cfg=config.normalization,
         device=device,
         train_dataset_config=config.dataset,

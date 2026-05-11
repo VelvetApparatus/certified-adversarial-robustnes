@@ -102,6 +102,7 @@ class FGSMAttackConfig:
     name: Literal["fgsm"]
     epsilon: float
     loss_fn: LossName = "cross_entropy"
+    random_start: bool = False
 
 
 @dataclass
@@ -111,8 +112,8 @@ class PGDAttackConfig:
     alpha: float
     steps: int
     norm: NormName = "Linf"
+    random_start: bool = True
     loss_fn: LossName = "cross_entropy"
-    random_start = True
 
 
 @dataclass

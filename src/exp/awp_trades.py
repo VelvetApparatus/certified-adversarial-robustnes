@@ -56,6 +56,7 @@ def main():
     train(
         name="AWP+TRADES",
         cfg=config.training,
+        model_cfg=config.model,
         model=model,
         optimizer=optimizer,
         norm_cfg=config.normalization,

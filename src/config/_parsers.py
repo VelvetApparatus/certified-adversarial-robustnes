@@ -28,6 +28,7 @@ def _parse_attack(cfg: dict) -> AttackConfig:
         return FGSMAttackConfig(
             name="fgsm",
             epsilon=cfg["epsilon"],
+            random_start=cfg.get("random_start", True),
             loss_fn=cfg.get("loss_fn", "cross_entropy"),
         )
 
@@ -38,6 +39,7 @@ def _parse_attack(cfg: dict) -> AttackConfig:
             alpha=cfg["alpha"],
             steps=cfg["steps"],
             norm=cfg.get("norm", "Linf"),
+            random_start=cfg.get("random_start", True),
             loss_fn=cfg.get("loss_fn", "cross_entropy"),
         )
 
