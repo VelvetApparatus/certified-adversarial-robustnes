@@ -1,6 +1,7 @@
 import argparse
 
 from src.config.smooth_adv import load_smooth_adv_train_config
+from src.model.api import get_model
 from src.train.common import train
 from src.eval.validation import evaluate_smoothed
 from src.train.smooth_adv import smooth_adv_train_one_epoch
@@ -19,7 +20,7 @@ def main():
         name="smooth_adv",
         cfg=config.training,
         norm_cfg=config.normalization,
-        model_cfg=config.model,
+        model=get_model(config.model, device),
         train_dataset_config=config.dataset,
         split_config=config.split,
         device=device,
