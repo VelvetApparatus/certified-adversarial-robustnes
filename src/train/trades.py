@@ -3,7 +3,8 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
-from src.robustness.adversaries.common import Adversary
+from src.config.common import PGDAttackConfig
+from src.robustness.adversaries.api import get_adversary
 
 
 def trades_train_one_epoch(
@@ -12,7 +13,7 @@ def trades_train_one_epoch(
         criterion,
         optimizer,
         device,
-        pgd: Adversary,
+        pgd_cfg: PGDAttackConfig,
         epoch: int,
         beta: float,
 ):
@@ -24,6 +25,7 @@ def trades_train_one_epoch(
     """
 
     model.train()
+    pgd = get_adversary(pgd_cfg, epoch=epoch)
 
     total_loss = 0.0
     total_clean_loss = 0.0

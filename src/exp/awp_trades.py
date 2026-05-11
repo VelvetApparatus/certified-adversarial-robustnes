@@ -5,7 +5,7 @@ from src.config.awp import load_awp_config
 from src.eval.validation import evaluate_adversarial
 from src.model.api import get_model
 from src.pkg import *
-from src.robustness.adversaries.pgd import PGD
+from src.robustness.adversaries.api import get_adversary
 from src.robustness.model.awp import TradesAWP
 from src.train.trades_awp import trades_awp_train
 from src.train.common import train
@@ -20,24 +20,7 @@ def main():
 
     device = get_device()
     set_seed(config.training.seed)
-
-    train_adversary = PGD(
-        epsilon=config.trainPGD.epsilon,
-        alpha=config.trainPGD.alpha,
-        steps=config.trainPGD.steps,
-        lossfn=config.trainPGD.loss_fn,
-        norm=config.trainPGD.norm,
-        random_start=config.trainPGD.random_start,
-    )
-
-    eval_adversary = PGD(
-        epsilon=config.evalPGD.epsilon,
-        alpha=config.evalPGD.alpha,
-        steps=config.evalPGD.steps,
-        lossfn=config.evalPGD.loss_fn,
-        norm=config.evalPGD.norm,
-        random_start=config.evalPGD.random_start,
-    )
+    eval_adversary = get_adversary(config.evalPGD)
 
     model = get_model(config.model, device).to(device)
     optimizer = get_optimizer(model, config.training.optimizer)
@@ -71,7 +54,7 @@ def main():
         training_kwargs={
             "awp": awp,
             "awp_warmup": config.awp.warmup_steps,
-            "adversary": train_adversary,
+            "pgd_cfg": config.trainPGD,
             "beta": config.awp.beta,
         },
         eval_kwargs={

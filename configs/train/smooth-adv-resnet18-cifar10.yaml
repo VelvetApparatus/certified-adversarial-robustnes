@@ -101,6 +101,31 @@ params:
       warmup_epochs: 10
       ramp_epochs: 30
 
+attack:
+  name: smooth_pgd
+  epsilon:
+    value: 0.25
+    scheduler:
+      enabled: true
+      type: linear
+      start: 0.0
+      end: 0.25
+      warmup_epochs: 0
+      ramp_epochs: 10
+  alpha:
+    value: 0.025
+    scheduler:
+      enabled: true
+      type: linear
+      start: 0.0
+      end: 0.025
+      warmup_epochs: 0
+      ramp_epochs: 10
+  steps: 10
+  norm: l2
+  random_start: true
+  clamp_noisy: true
+
 normalization:
   enabled: true
   mean: [ 0.4914, 0.4822, 0.4465 ]

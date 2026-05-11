@@ -1,9 +1,9 @@
 import torch
 from tqdm import tqdm
 
-from src.config.common import SmoothAdvTrainingParams, get_scheduled
+from src.config.common import SmoothAdvTrainingParams, SmoothedAttackConfig, get_scheduled
 from src.robustness.input.gaussian import GaussianNoiseGenerator
-from src.robustness.adversaries.pgd import SmoothPGD
+from src.robustness.adversaries.api import get_adversary
 from src.robustness.model.awp import AWPCrossEntropy
 
 
@@ -30,7 +30,7 @@ def train_smoothed_awp(
         awp: AWPCrossEntropy,
         beta: float,
         awp_warmup: int,
-        adversary: SmoothPGD,
+        attack_cfg: SmoothedAttackConfig,
         params: SmoothAdvTrainingParams,
         **kwargs
 ):
@@ -43,8 +43,15 @@ def train_smoothed_awp(
     total_samples = 0
 
     sigma_eff = get_scheduled(params.sigma, params.sigma_scheduler, epoch)
-    epsilon_eff = get_scheduled(params.epsilon, params.epsilon_scheduler, epoch)
-    adversary.alpha = epsilon_eff / 4
+    adversary = get_adversary(
+        attack_cfg,
+        epoch=epoch,
+        sigma=sigma_eff,
+        num_noise_vec=params.num_noise_vec,
+        clamp_noisy=params.clamp_noisy,
+    )
+    epsilon_eff = adversary.epsilon
+    alpha_eff = adversary.alpha
 
     noise_gen = GaussianNoiseGenerator(
         sigma=sigma_eff,
@@ -65,9 +72,6 @@ def train_smoothed_awp(
         y = y.to(device, non_blocking=True)
 
         batch_size = y.size(0)
-
-        if hasattr(adversary, "epsilon"):
-            adversary.epsilon = epsilon_eff
 
         x_adv = adversary.gen(model, x, y)
         x_adv = torch.clamp(x_adv, 0.0, 1.0)
@@ -138,4 +142,5 @@ def train_smoothed_awp(
         "adv_delta_norm": total_delta_norm / total_samples,
         "sigma": sigma_eff,
         "epsilon": epsilon_eff,
+        "alpha": alpha_eff,
     }

@@ -6,7 +6,8 @@ from torchvision.transforms import Compose
 
 LossName = Literal["cross_entropy"]
 NormName = Literal["Linf", "l2"]
-AttackName = Literal["fgsm", "pgd", "stadv"]
+AttackName = Literal["fgsm", "pgd", "stadv", "smooth_pgd"]
+AttackLossName = Literal["cross_entropy", "kl_divergence"]
 OptimizerName = Literal["sgd", "adam", "adamw"]
 BestMetricMode = Literal["auto", "min", "max"]
 
@@ -111,8 +112,23 @@ class PGDAttackConfig:
     alpha: float
     steps: int
     norm: NormName = "Linf"
-    loss_fn: LossName = "cross_entropy"
-    random_start = True
+    loss_fn: AttackLossName = "cross_entropy"
+    random_start: bool = True
+    epsilon_scheduler: Optional[LinearScheduleConfig] = None
+    alpha_scheduler: Optional[LinearScheduleConfig] = None
+
+
+@dataclass
+class SmoothedAttackConfig:
+    name: Literal["smooth_pgd"]
+    epsilon: float
+    alpha: float
+    steps: int
+    norm: NormName = "l2"
+    random_start: bool = True
+    clamp_noisy: bool = True
+    epsilon_scheduler: Optional[LinearScheduleConfig] = None
+    alpha_scheduler: Optional[LinearScheduleConfig] = None
 
 
 @dataclass
@@ -125,7 +141,12 @@ class StAdvAttackConfig:
     loss_fn: LossName = "cross_entropy"
 
 
-AttackConfig = Union[FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig]
+AttackConfig = Union[
+    FGSMAttackConfig,
+    PGDAttackConfig,
+    SmoothedAttackConfig,
+    StAdvAttackConfig,
+]
 
 
 @dataclass
