@@ -108,20 +108,21 @@ def train(
         name: str,
         cfg: TrainingConfig,
         norm_cfg: NormalizeConfig,
-        model: ModelConfig | torch.nn.Module,
+        model_cfg: ModelConfig,
         device,
         train_dataset_config: DatasetConfig,
         split_config: DatasetSplitConfig,
         loss_fn,
         train_epoch_fn: Callable,
         eval_fn: Callable,
+        model: torch.nn.Module = None, 
         config_path: str | None = None,
         optimizer=None,
         training_kwargs: dict | None = None,
         eval_kwargs: dict | None = None,
 ):
-    if isinstance(model, ModelConfig):
-        model = get_model(model, device).to(device)
+    if model is None:
+        model = get_model(model_cfg, device).to(device)
 
     training_kwargs = dict(training_kwargs or {})
     eval_kwargs = dict(eval_kwargs or {})
@@ -137,7 +138,7 @@ def train(
     scheduler = get_scheduler(optimizer, cfg.scheduler, epochs=cfg.epochs)
 
     run_name = "{}_{}_{}".format(
-        model.name,
+        model_cfg.name,
         train_dataset_config.name,
         datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
     )
@@ -196,7 +197,7 @@ def train(
         name=name,
         cfg=cfg,
         dataset_cfg=train_dataset_config,
-        model_cfg=model,
+        model_cfg=model_cfg,
         split=split_config,
     )
 

@@ -15,6 +15,7 @@ fgsm:
   epsilon: 0.03137
   norm: Linf
   loss_fn: cross_entropy
+  random_start: True
 
 pgd:
   epsilon: 0.03137
@@ -22,6 +23,8 @@ pgd:
   steps: 20
   norm: Linf
   loss_fn: cross_entropy
+  random_start: True
+
 
 
 params:

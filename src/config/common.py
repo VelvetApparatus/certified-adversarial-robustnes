@@ -103,6 +103,7 @@ class FGSMAttackConfig:
     name: Literal["fgsm"]
     epsilon: float
     loss_fn: LossName = "cross_entropy"
+    random_start: bool = False
 
 
 @dataclass
@@ -112,10 +113,12 @@ class PGDAttackConfig:
     alpha: float
     steps: int
     norm: NormName = "Linf"
+
     loss_fn: AttackLossName = "cross_entropy"
     random_start: bool = True
     epsilon_scheduler: Optional[LinearScheduleConfig] = None
     alpha_scheduler: Optional[LinearScheduleConfig] = None
+    random_start: bool = True
 
 
 @dataclass
@@ -129,6 +132,7 @@ class SmoothedAttackConfig:
     clamp_noisy: bool = True
     epsilon_scheduler: Optional[LinearScheduleConfig] = None
     alpha_scheduler: Optional[LinearScheduleConfig] = None
+
 
 
 @dataclass

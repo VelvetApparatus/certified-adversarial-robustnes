@@ -40,6 +40,7 @@ def _parse_attack(cfg: dict) -> AttackConfig:
     if attack_name == "smooth_pgd":
         return _parse_smoothed_attack(cfg)
 
+
     if attack_name == "stadv":
         return StAdvAttackConfig(
             name="stadv",
