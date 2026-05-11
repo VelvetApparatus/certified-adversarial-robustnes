@@ -1,9 +1,16 @@
 from typing import Optional
 
-from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, StAdvAttackConfig, DatasetConfig, \
-    OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, CertificationParams, TradesParams, \
-    EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, MacerTrainingParams, NormalizeConfig, \
-    LinearScheduleConfig, SmoothAdvTrainingParams, AWPParams
+from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, SmoothedAttackConfig, \
+    StAdvAttackConfig, DatasetConfig, OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, \
+    CertificationParams, TradesParams, EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, \
+    MacerTrainingParams, NormalizeConfig, LinearScheduleConfig, SmoothAdvTrainingParams, AWPParams
+
+
+def _normalize_attack_loss_name(loss_name):
+    if isinstance(loss_name, str):
+        return loss_name.replace("-", "_")
+
+    return loss_name
 
 
 def _parse_linear_schedule(cfg: Optional[dict]) -> LinearScheduleConfig:
@@ -25,23 +32,14 @@ def _parse_attack(cfg: dict) -> AttackConfig:
         raise ValueError("Each attack must contain field 'name'")
 
     if attack_name == "fgsm":
-        return FGSMAttackConfig(
-            name="fgsm",
-            epsilon=cfg["epsilon"],
-            random_start=cfg.get("random_start", True),
-            loss_fn=cfg.get("loss_fn", "cross_entropy"),
-        )
+        return _parse_fgsm(cfg)
 
     if attack_name == "pgd":
-        return PGDAttackConfig(
-            name="pgd",
-            epsilon=cfg["epsilon"],
-            alpha=cfg["alpha"],
-            steps=cfg["steps"],
-            norm=cfg.get("norm", "Linf"),
-            random_start=cfg.get("random_start", True),
-            loss_fn=cfg.get("loss_fn", "cross_entropy"),
-        )
+        return _parse_pgd(cfg)
+
+    if attack_name == "smooth_pgd":
+        return _parse_smoothed_attack(cfg)
+
 
     if attack_name == "stadv":
         return StAdvAttackConfig(
@@ -188,14 +186,55 @@ def _parse_trades_params(cfg: Optional[dict]) -> TradesParams:
 
 def _parse_pgd(cfg: Optional[dict]) -> PGDAttackConfig:
     cfg = cfg or {}
+
+    epsilon, epsilon_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="epsilon",
+        default_value=0.01,
+    )
+    alpha, alpha_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="alpha",
+        default_value=0.01,
+    )
+
     return PGDAttackConfig(
         name=cfg.get("name", "pgd"),
-        epsilon=cfg.get("epsilon", 0.01),
-        alpha=cfg.get("alpha", 0.01),
+        epsilon=epsilon,
+        alpha=alpha,
         steps=cfg.get("steps", 100),
         norm=cfg.get("norm", "l2"),
-        loss_fn=cfg.get("loss_fn", None),
-        random_start=cfg.get("random_start", True)
+        loss_fn=_normalize_attack_loss_name(cfg.get("loss_fn", "cross_entropy")),
+        random_start=cfg.get("random_start", True),
+        epsilon_scheduler=epsilon_scheduler,
+        alpha_scheduler=alpha_scheduler,
+    )
+
+
+def _parse_smoothed_attack(cfg: Optional[dict]) -> SmoothedAttackConfig:
+    cfg = cfg or {}
+
+    epsilon, epsilon_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="epsilon",
+        default_value=0.25,
+    )
+    alpha, alpha_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="alpha",
+        default_value=0.025,
+    )
+
+    return SmoothedAttackConfig(
+        name=cfg.get("name", "smooth_pgd"),
+        epsilon=epsilon,
+        alpha=alpha,
+        steps=int(cfg.get("steps", 10)),
+        norm=cfg.get("norm", "l2"),
+        random_start=bool(cfg.get("random_start", True)),
+        clamp_noisy=bool(cfg.get("clamp_noisy", True)),
+        epsilon_scheduler=epsilon_scheduler,
+        alpha_scheduler=alpha_scheduler,
     )
 
 
@@ -204,7 +243,7 @@ def _parse_fgsm(cfg: Optional[dict]) -> FGSMAttackConfig:
     return FGSMAttackConfig(
         name=cfg.get("name", "fgsm"),
         epsilon=cfg.get("epsilon", 0.01),
-        loss_fn=cfg.get("loss_fn", None),
+        loss_fn=_normalize_attack_loss_name(cfg.get("loss_fn", "cross_entropy")),
     )
 
 

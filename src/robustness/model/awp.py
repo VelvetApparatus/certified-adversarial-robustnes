@@ -2,7 +2,6 @@ from collections import OrderedDict
 
 import torch
 import torch.nn.functional as F
-from torch import nn
 
 
 class TradesAWP(object):
@@ -50,10 +49,15 @@ class TradesAWP(object):
         self.proxy.load_state_dict(self.model.state_dict())
         self.proxy.train()
 
-        loss_natural = F.cross_entropy(self.proxy(inputs_clean), targets)
-        loss_robust = F.kl_div(F.log_softmax(self.proxy(inputs_adv), dim=1),
-                               F.softmax(self.proxy(inputs_clean), dim=1),
-                               reduction='batchmean')
+        logits_clean = self.proxy(inputs_clean)
+        logits_adv = self.proxy(inputs_adv)
+
+        loss_natural = F.cross_entropy(logits_clean, targets)
+        loss_robust = F.kl_div(
+            F.log_softmax(logits_adv, dim=1),
+            F.softmax(logits_clean.detach(), dim=1),
+            reduction="batchmean",
+        )
         loss = - 1.0 * (loss_natural + beta * loss_robust)
 
         self.proxy_optim.zero_grad()
@@ -69,3 +73,39 @@ class TradesAWP(object):
 
     def restore(self, diff):
         self._add_into_weights(diff, coef=-1.0)
+
+
+class AWPCrossEntropy(TradesAWP):
+    def __init__(
+            self,
+            model,
+            proxy,
+            proxy_optim,
+            wcoef,
+            weps,
+    ):
+        super().__init__(
+            model,
+            proxy,
+            proxy_optim,
+            wcoef,
+            weps,
+        )
+
+
+    def calc_awp(
+            self,
+            inputs_adv,
+            targets,
+            beta,
+            inputs_clean=None,
+    ):
+        self.proxy.load_state_dict(self.model.state_dict())
+        self.proxy.train()
+
+        loss = -F.cross_entropy(self.proxy(inputs_adv), targets)
+        self.proxy_optim.zero_grad(set_to_none=True)
+        loss.backward()
+        self.proxy_optim.step()
+
+        return self.diff_in_weights()

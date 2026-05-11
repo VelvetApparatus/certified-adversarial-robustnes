@@ -165,3 +165,83 @@ class PGD(Adversary):
         grad_flat = grad_flat / (norms + 1e-12)
 
         return grad_flat.reshape_as(grad)
+
+
+class SmoothPGD(PGD):
+    def __init__(self, epsilon, alpha, steps, sigma, num_noise_vec, norm="l2", random_start=True, clamp_noisy=True):
+        super().__init__(
+            epsilon=epsilon,
+            alpha=alpha,
+            steps=steps,
+            lossfn="cross_entropy",
+            norm=norm,
+            random_start=random_start,
+        )
+        self.sigma = sigma
+        self.num_noise_vec = num_noise_vec
+        self.clamp_noisy = clamp_noisy
+
+    def _repeat_for_noise_samples(self, x):
+        b = x.size(0)
+        return (
+            x.unsqueeze(1)
+            .repeat(1, self.num_noise_vec, 1, 1, 1)
+            .view(b * self.num_noise_vec, *x.shape[1:])
+        )
+
+    def _gen(self, model, X, y):
+        X_orig = X.detach().clone()
+
+        # random start as in PGD
+        if self.random_start:
+            if self.norm == "linf":
+                delta = torch.empty_like(X_orig).uniform_(-self.epsilon, self.epsilon)
+            elif self.norm == "l2":
+                delta = torch.randn_like(X_orig)
+                delta = self.normalize_l2(delta)
+                radius = torch.rand(
+                    X_orig.size(0), 1, 1, 1,
+                    device=X_orig.device,
+                    dtype=X_orig.dtype,
+                )
+                delta = delta * radius * self.epsilon
+            else:
+                raise NotImplementedError(f"Unsupported norm: {self.norm}")
+
+            X_adv = torch.clamp(X_orig + delta, 0.0, 1.0)
+        else:
+            X_adv = X_orig.clone()
+
+        y_rep = y.repeat_interleave(self.num_noise_vec)
+
+        for _ in range(self.steps):
+            X_adv = X_adv.detach()
+            X_adv.requires_grad_(True)
+
+            X_adv_rep = self._repeat_for_noise_samples(X_adv)
+            noise = torch.randn_like(X_adv_rep) * self.sigma
+            X_noisy_adv = X_adv_rep + noise
+
+            if self.clamp_noisy:
+                X_noisy_adv = torch.clamp(X_noisy_adv, 0.0, 1.0)
+
+            logits = model(X_noisy_adv)
+            loss = F.cross_entropy(logits, y_rep)
+
+            grad = torch.autograd.grad(loss, X_adv)[0]
+
+            if self.norm == "linf":
+                X_adv = X_adv.detach() + self.alpha * grad.sign()
+            elif self.norm == "l2":
+                X_adv = X_adv.detach() + self.alpha * self.normalize_l2(grad)
+
+            delta = X_adv - X_orig
+
+            if self.norm == "linf":
+                delta = self.l_inf_projection(delta, self.epsilon)
+            else:
+                delta = self.l2_projection(delta, self.epsilon)
+
+            X_adv = torch.clamp(X_orig + delta, 0.0, 1.0)
+
+        return X_adv.detach()

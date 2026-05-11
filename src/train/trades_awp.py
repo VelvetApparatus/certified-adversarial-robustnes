@@ -1,6 +1,7 @@
 import torch
 from tqdm import tqdm
-from src.robustness.adversaries.common import Adversary
+from src.config.common import PGDAttackConfig
+from src.robustness.adversaries.api import get_adversary
 from src.robustness.model.awp import TradesAWP
 import torch.nn.functional as F
 
@@ -13,13 +14,14 @@ def trades_awp_train(
         device,
         awp: TradesAWP,
         awp_warmup: int,
-        adversary: Adversary,
+        pgd_cfg: PGDAttackConfig,
         epoch: int,
         beta: float,
         **kwargs
 
 ):
     model.train()
+    adversary = get_adversary(pgd_cfg, epoch=epoch)
 
     total_loss = 0.0
     total_clean_loss = 0.0

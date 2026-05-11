@@ -1,10 +1,10 @@
 from __future__ import print_function
 import argparse
 
-from src.robustness.adversaries.pgd import PGD
 from src.config.trades import load_trades_config
 from src.pkg import *
 from src.eval.validation import evaluate_adversarial
+from src.robustness.adversaries.api import get_adversary
 from src.train.common import train
 from src.train.trades import trades_train_one_epoch
 
@@ -18,14 +18,7 @@ def main():
 
     device = get_device()
     set_seed(config.params.seed)
-
-    adversary = PGD(
-        epsilon=config.evalPGD.epsilon,
-        alpha=config.evalPGD.alpha,
-        steps=config.evalPGD.steps,
-        loss_fn=get_loss_fn(config.training.criterion),
-        norm=config.evalPGD.norm,
-    )
+    eval_adversary = get_adversary(config.evalPGD)
 
     train(
         "TRADES-training",
@@ -45,12 +38,12 @@ def main():
         eval_fn=evaluate_adversarial,
 
         training_kwargs={
-            "pgd": adversary,
+            "pgd_cfg": config.trainPGD,
             "beta": config.params.beta,
         },
         eval_kwargs={
             "metric_prefix": "pgd",
-            "adversary": adversary,
+            "adversary": eval_adversary,
         },
 
     )

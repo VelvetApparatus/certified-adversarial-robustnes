@@ -2,12 +2,14 @@ from tqdm import tqdm
 import torch
 
 from src.config.adversarial_training import AdversarialTrainingConfig
+from src.config.common import PGDAttackConfig
+from src.robustness.adversaries.api import get_adversary
 
 
 def adversarial_train_one_epoch(
         model,
         train_loader,
-        adversary,
+        pgd_cfg: PGDAttackConfig,
         criterion,
         optimizer,
         device,
@@ -16,6 +18,7 @@ def adversarial_train_one_epoch(
         **kwargs,
 ):
     model.train()
+    adversary = get_adversary(pgd_cfg, epoch=epoch)
 
     clean_loss_weight = getattr(adversarial_config.training, "clean_loss_weight", 0.0)
     adv_loss_weight = getattr(adversarial_config.training, "adv_loss_weight", 1.0)
