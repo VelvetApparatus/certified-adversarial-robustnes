@@ -20,6 +20,7 @@ class PGD(Adversary):
         if lossfn not in ["cross_entropy", "kl_divergence"]:
             raise NotImplementedError(f"Unsupported lossfn: {lossfn}")
 
+        self.lossfn = lossfn
         self.kl_divergence = lossfn == "kl_divergence"
 
         if lossfn == "cross_entropy":
@@ -39,10 +40,18 @@ class PGD(Adversary):
             },
         )
 
+        norm = norm.lower()
+        if norm in {"linf", "l_inf", "inf"}:
+            norm = "linf"
+        elif norm in {"l2", "l_2"}:
+            norm = "l2"
+        else:
+            raise NotImplementedError(f"Unsupported norm: {norm}")
+
         self.epsilon = epsilon
         self.alpha = alpha
         self.steps = steps
-        self.norm = norm.lower()
+        self.norm = norm
         self.random_start = random_start
 
     def __repr__(self):
@@ -51,9 +60,9 @@ class PGD(Adversary):
             f"epsilon={self.epsilon}, "
             f"alpha={self.alpha}, "
             f"steps={self.steps}, "
-            f"norm={self.norm}"
-            f"random_start={self.random_start}"
-            f"loss_fn={self.loss_fn}"
+            f"norm={self.norm}, "
+            f"random_start={self.random_start}, "
+            f"lossfn={self.lossfn}"
             f")"
         )
 
@@ -70,6 +79,9 @@ class PGD(Adversary):
         X_adv: adversarial examples
         """
         X_orig = X.detach().clone()
+
+        if not self.kl_divergence and y is None:
+            raise ValueError("y must be provided when lossfn='cross_entropy'")
 
         if self.kl_divergence:
             with torch.no_grad():

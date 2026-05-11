@@ -17,6 +17,7 @@ from src.config._parsers import (
 @dataclass
 class AWPTradesConfig:
     training: TrainingConfig
+    trades: TradesParams
     model: ModelConfig
     awp: AWPParams
     dataset: DatasetConfig
@@ -33,8 +34,10 @@ def load_awp_config(path: str) -> AWPTradesConfig:
 
     if "awp" not in raw:
         raise FileNotFoundError("AWP not found in config")
-    if "train" not in raw:
+    if "train" not in raw and "training" not in raw:
         raise FileNotFoundError("Train not found in config")
+    if "trades" not in raw and "trades_params" not in raw:
+        raise FileNotFoundError("Trades not found in config")
     if "dataset" not in raw:
         raise FileNotFoundError("Dataset not found in config")
     if "split" not in raw:
@@ -47,7 +50,8 @@ def load_awp_config(path: str) -> AWPTradesConfig:
         raise FileNotFoundError("Normalization not found in config")
 
     return AWPTradesConfig(
-        training=_parse_training(raw["train"]),
+        training=_parse_training(raw.get("train", raw.get("training"))),
+        trades=_parse_trades_params(raw.get("trades", raw.get("trades_params"))),
         model=_parse_model(raw["model"]),
         awp=_parse_awp_params(raw["awp"]),
         dataset=_parse_dataset(raw["dataset"]),

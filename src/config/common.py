@@ -276,21 +276,22 @@ class MacerTrainingParams:
 
 @dataclass
 class TradesParams:
-    epochs: int
-    lr: float
-    momentum: float
-    epsilon: float
-    num_steps: int
-    step_size: int
-    sigma: float
-    beta: float
-    seed: int
-    output_dir: str
-    certificate_every_epoch: int
-    certificate_epoch_threshold: int
-    checkpoint: str
-    cert_start: int
-    cert_num: int
+    epochs: int = 100
+    lr: float = 0.1
+    momentum: float = 0.9
+    epsilon: float = 0.01
+    num_steps: int = 10
+    step_size: float = 0.01
+    sigma: float = 0.0
+    beta: float = 6.0
+    seed: int = 42
+    output_dir: str | None = None
+    certificate_every_epoch: int = 0
+    certificate_epoch_threshold: int = 200
+    checkpoint: str | None = None
+    cert_start: int = 0
+    cert_num: int = 100
+    distance: str = "l_inf"
 
 
 @dataclass
@@ -316,14 +317,7 @@ class SmoothAdvTrainingParams:
 
 @dataclass
 class AWPParams:
-
     weights_diff_coef: float = 0.0
     weights_epsilon: float = 0.0
-
-    # steps to ignore weights perturbation step
     warmup_steps: int = 10
-
-    # beta is a robust loss coefficient
-    # loss = classification loss + beta * robust_loss
-    beta: float = 0.3
-    beta_scheduler: Optional[LinearScheduleConfig] = None
+    proxy_optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
