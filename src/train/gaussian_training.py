@@ -1,5 +1,3 @@
-# src/exp/gaussian_training.py
-
 import torch
 from tqdm import tqdm
 
@@ -17,14 +15,12 @@ def gaussian_train_one_epoch(
         clean_loss_weight: float = 0.0,
         noisy_loss_weight: float = 1.0,
         noise_ratio: float = 1.0,
-        normalized_space: bool = True,
 ):
     model.train()
 
     noise_generator = GaussianNoiseGenerator(
         sigma=sigma,
         ratio=noise_ratio,
-        normalized_space=normalized_space,
     )
 
     total_loss = 0.0
@@ -100,5 +96,3 @@ def gaussian_train_one_epoch(
         metrics["clean_acc"] = total_clean_correct / total_samples
 
     return metrics
-
-

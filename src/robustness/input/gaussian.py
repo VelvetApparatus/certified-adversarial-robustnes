@@ -23,7 +23,6 @@ class GaussianNoiseGenerator(RobustnessRegularization):
             self,
             sigma: float,
             ratio: float = 1.0,
-            normalized_space = False 
     ):
         super().__init__()
 
