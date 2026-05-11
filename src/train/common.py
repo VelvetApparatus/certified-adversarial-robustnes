@@ -104,10 +104,20 @@ def save_checkpoint(
     torch.save(state, path)
 
 
+def resolve_model_name(model: ModelConfig | torch.nn.Module) -> str:
+    if isinstance(model, ModelConfig):
+        return model.name
+
+    if isinstance(model, InputNormalizer):
+        return resolve_model_name(model.model)
+
+    return getattr(model, "name", model.__class__.__name__)
+
+
 def train(
         name: str,
         cfg: TrainingConfig,
-        norm_cfg: NormalizeConfig,
+        norm_cfg: NormalizeConfig | None,
         model: ModelConfig | torch.nn.Module,
         device,
         train_dataset_config: DatasetConfig,
@@ -117,11 +127,14 @@ def train(
         eval_fn: Callable,
         config_path: str | None = None,
         optimizer=None,
+        model_is_prepared: bool = False,
         training_kwargs: dict | None = None,
         eval_kwargs: dict | None = None,
 ):
     if isinstance(model, ModelConfig):
         model = get_model(model, device).to(device)
+    else:
+        model = model.to(device)
 
     training_kwargs = dict(training_kwargs or {})
     eval_kwargs = dict(eval_kwargs or {})
@@ -134,12 +147,30 @@ def train(
     if optimizer is None:
         optimizer = get_optimizer(model, cfg.optimizer)
 
+    if norm_cfg is not None and norm_cfg.enabled and not model_is_prepared:
+        model = InputNormalizer(
+            model=model,
+            std=norm_cfg.std,
+            mean=norm_cfg.mean,
+        )
+        model = model.to(device)
+
+    model_name = resolve_model_name(model)
+
     scheduler = get_scheduler(optimizer, cfg.scheduler, epochs=cfg.epochs)
 
     run_name = "{}_{}_{}".format(
-        model.name,
+        model_name,
         train_dataset_config.name,
         datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
+    )
+
+    use_wandb = init_wandb_if_needed(
+        name=name,
+        cfg=cfg,
+        dataset_cfg=train_dataset_config,
+        model_name=model_name,
+        split=split_config,
     )
 
     output_dir = os.path.join(cfg.save_dir, run_name)
@@ -183,22 +214,6 @@ def train(
                 "metric_for_best_model / metric_mode_for_best_model. "
                 "Best metric tracking will be reset for this run."
             )
-
-    if norm_cfg.enabled:
-        model = InputNormalizer(
-            model=model,
-            std=norm_cfg.std,
-            mean=norm_cfg.mean,
-        )
-        model = model.to(device)
-
-    use_wandb = init_wandb_if_needed(
-        name=name,
-        cfg=cfg,
-        dataset_cfg=train_dataset_config,
-        model_cfg=model,
-        split=split_config,
-    )
 
     print(
         "Best checkpoint metric: "
@@ -327,7 +342,7 @@ def init_wandb_if_needed(
         name: str,
         cfg: TrainingConfig,
         dataset_cfg: DatasetConfig,
-        model_cfg: ModelConfig,
+        model_name: str,
         split: DatasetSplitConfig,
 ):
     use_wandb = cfg.wandb.enabled
@@ -338,7 +353,7 @@ def init_wandb_if_needed(
     wandb.login(key=WANDB_TOKEN)
 
     run_name = cfg.wandb.run_name or (
-        f"{model_cfg.name}|{dataset_cfg.name}|{name}|"
+        f"{model_name}|{dataset_cfg.name}|{name}|"
         f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
     )
 
@@ -349,7 +364,7 @@ def init_wandb_if_needed(
         tags=cfg.wandb.tags,
         config={
             "dataset": dataset_cfg.name,
-            "model": model_cfg.name,
+            "model": model_name,
             "method": name,
             "epochs": cfg.epochs,
             "seed": cfg.seed,

@@ -27,7 +27,7 @@ train:
   criterion: cross_entropy
 
   checkpoint: null
-  save_dir: ./outputs/train/trades/cifar10_resnet18
+  save_dir: ./outputs/train/awp_trades/cifar10_resnet18
   save_best: true
   save_last: true
   metric_for_best_model: eval_pgd_acc
@@ -51,11 +51,18 @@ train:
     enabled: true
     project: certified-robustness
     entity: null
-    run_name: trades_cifar10_resnet18
+    run_name: awp_trades_cifar10_resnet18
     tags:
       - trades-awp
       - cifar10
       - resnet18
+
+trades:
+  epsilon: 0.031372549
+  step_size: 0.007843137
+  perturb_steps: 10
+  beta: 6.0
+  distance: l_inf
 
 train_pgd:
   name: pgd
@@ -64,14 +71,16 @@ train_pgd:
   steps: 10
   norm: Linf
   loss_fn: kl_divergence
+  random_start: true
 
 eval_pgd:
   name: pgd
   epsilon: 0.031372549  # 8/255
   alpha: 0.007843137    # 2/255
-  steps: 10
+  steps: 20
   norm: Linf
   loss_fn: cross-entropy
+  random_start: true
 
 normalization:
   enabled: true
@@ -81,19 +90,10 @@ normalization:
 
 awp:
   weights_diff_coef: 0.005
-  weights_epsilon: 1e-20
+  weights_epsilon: 1.0e-20
   warmup_steps: 15
-  beta:
-    value: 1
-    scheduler:
-      enabled: true
-      type: linear
-      start: 1
-      end: 6
-      warmup_epochs: 10
-      ramp_epochs: 30
-
-
-
-
-
+  proxy_optimizer:
+    name: sgd
+    lr: 0.01
+    momentum: 0.9
+    weight_decay: 0.0

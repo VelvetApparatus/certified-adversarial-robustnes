@@ -25,12 +25,23 @@ class TradesAWP(object):
         diff_dict = OrderedDict()
         model_state_dict = self.model.state_dict()
         proxy_state_dict = self.proxy.state_dict()
-        for (old_k, old_w), (new_k, new_w) in zip(model_state_dict.items(), proxy_state_dict.items()):
+        for key, old_w in model_state_dict.items():
+            if key not in proxy_state_dict:
+                continue
             if len(old_w.size()) <= 1:
                 continue
-            if 'weight' in old_k:
-                diff_w = new_w - old_w
-                diff_dict[old_k] = old_w.norm() / (diff_w.norm() + self.weps) * diff_w
+            if "weight" not in key:
+                continue
+
+            new_w = proxy_state_dict[key]
+            diff_w = new_w - old_w
+            diff_norm = diff_w.norm()
+
+            if diff_norm < self.weps:
+                continue
+
+            diff_dict[key] = old_w.norm() / (diff_norm + self.weps) * diff_w
+
         return diff_dict
 
     def _add_into_weights(
@@ -60,7 +71,7 @@ class TradesAWP(object):
         )
         loss = - 1.0 * (loss_natural + beta * loss_robust)
 
-        self.proxy_optim.zero_grad()
+        self.proxy_optim.zero_grad(set_to_none=True)
         loss.backward()
         self.proxy_optim.step()
 

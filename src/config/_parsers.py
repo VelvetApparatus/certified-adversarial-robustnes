@@ -169,8 +169,8 @@ def _parse_trades_params(cfg: Optional[dict]) -> TradesParams:
         lr=cfg.get("lr", 0.1),
         momentum=cfg.get("momentum", 0.9),
         epsilon=cfg.get("epsilon", 0.01),
-        num_steps=cfg.get("num_steps", 100),
-        step_size=cfg.get("step_size", 30),
+        num_steps=cfg.get("perturb_steps", cfg.get("num_steps", 10)),
+        step_size=cfg.get("step_size", 0.01),
         beta=cfg.get("beta", 0.01),
         sigma=cfg.get("sigma", 0.01),
         seed=cfg.get("seed", 42),
@@ -180,6 +180,7 @@ def _parse_trades_params(cfg: Optional[dict]) -> TradesParams:
         checkpoint=cfg.get("checkpoint", None),
         cert_start=cfg.get("cert_start", 0),
         cert_num=cfg.get("cert_num", 100),
+        distance=cfg.get("distance", "l_inf"),
     )
 
 
@@ -358,16 +359,9 @@ def _parse_smooth_adv_params(cfg: dict) -> SmoothAdvTrainingParams:
 def _parse_awp_params(cfg: dict) -> AWPParams:
     cfg = cfg or {}
 
-    beta, beta_scheduler = _parse_value_with_scheduler(
-        cfg=cfg,
-        key="beta",
-        default_value=0.1,
-    )
-
     return AWPParams(
         weights_epsilon=cfg.get("weights_epsilon", 0.01),
         weights_diff_coef=cfg.get("weights_diff_coef", 0.01),
         warmup_steps=cfg.get("warmup_steps", 100),
-        beta=beta,
-        beta_scheduler=beta_scheduler,
+        proxy_optimizer=_parse_optimizer(cfg.get("proxy_optimizer")),
     )
