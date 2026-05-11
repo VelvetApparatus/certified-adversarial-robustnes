@@ -21,13 +21,22 @@ def main():
     device = get_device()
     set_seed(config.training.seed)
 
-    adversary = PGD(
-        epsilon=config.pgd.epsilon,
-        alpha=config.pgd.alpha,
-        steps=config.pgd.steps,
-        lossfn=config.pgd.loss_fn,
-        norm=config.pgd.norm,
-        random_start=config.pgd.random_start
+    train_adversary = PGD(
+        epsilon=config.trainPGD.epsilon,
+        alpha=config.trainPGD.alpha,
+        steps=config.trainPGD.steps,
+        lossfn=config.trainPGD.loss_fn,
+        norm=config.trainPGD.norm,
+        random_start=config.trainPGD.random_start,
+    )
+
+    eval_adversary = PGD(
+        epsilon=config.evalPGD.epsilon,
+        alpha=config.evalPGD.alpha,
+        steps=config.evalPGD.steps,
+        lossfn=config.evalPGD.loss_fn,
+        norm=config.evalPGD.norm,
+        random_start=config.evalPGD.random_start,
     )
 
     model = get_model(config.model, device).to(device)
@@ -62,12 +71,12 @@ def main():
         training_kwargs={
             "awp": awp,
             "awp_warmup": config.awp.warmup_steps,
-            "adversary": adversary,
+            "adversary": train_adversary,
             "beta": config.awp.beta,
         },
         eval_kwargs={
             "metric_prefix": "pgd",
-            "adversary": adversary,
+            "adversary": eval_adversary,
         },
 
     )

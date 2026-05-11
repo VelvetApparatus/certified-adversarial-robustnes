@@ -57,13 +57,6 @@ train:
       - cifar10
       - resnet18
 
-trades_params:
-  epsilon: 0.031372549
-  step_size: 0.007843137
-  perturb_steps: 10
-  beta: 6.0
-  distance: l_inf
-
 train_pgd:
   name: pgd
   epsilon: 0.031372549  # 8/255
@@ -91,12 +84,12 @@ awp:
   weights_epsilon: 1e-20
   warmup_steps: 15
   beta:
-    value: 0.1
+    value: 1
     scheduler:
       enabled: true
       type: linear
-      start: 0.1
-      end: 0.4
+      start: 1
+      end: 6
       warmup_epochs: 10
       ramp_epochs: 30
 
