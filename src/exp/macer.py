@@ -21,7 +21,7 @@ def main():
         name="macer",
         cfg=cfg.training,
         norm_cfg=cfg.normalization,
-        model_cfg=cfg.model,
+        model=cfg.model,
         device=device,
         train_dataset_config=cfg.dataset,
         split_config=cfg.split,
