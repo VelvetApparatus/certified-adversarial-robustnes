@@ -27,11 +27,10 @@ def evaluate(
     # =====================
     # Initialize PGD attack
     # =====================
-    pgd_loss_fn = get_loss_fn(pgd_conf.loss_fn)
     pgd = PGD(
         alpha=pgd_conf.alpha,
         epsilon=pgd_conf.epsilon,
-        loss_fn=pgd_loss_fn,
+        lossfn=pgd_conf.loss_fn,
         norm=pgd_conf.norm,
         steps=pgd_conf.steps,
     )
@@ -44,10 +43,9 @@ def evaluate(
     # =====================
     # Initialize FGSM attack
     # =====================
-    fgsm_loss_fn = get_loss_fn(fgsm_conf.loss_fn)
     fgsm_attack = FGSMAttack(
         eps=fgsm_conf.epsilon,
-        loss_fn=fgsm_loss_fn,
+        loss_fn=fgsm_conf.loss_fn,
     )
 
     fgsm_adversary = AdversarialGenerator(
