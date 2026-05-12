@@ -281,7 +281,9 @@ class TradesParams:
     epsilon: float = 0.01
     num_steps: int = 10
     step_size: float = 0.01
+    # todo: add sigma scheduler
     sigma: float = 0.0
+    # todo: add beta scheduler
     beta: float = 6.0
     seed: int = 42
     output_dir: str | None = None
@@ -291,6 +293,29 @@ class TradesParams:
     cert_start: int = 0
     cert_num: int = 100
     distance: str = "l_inf"
+
+
+@dataclass
+class TradesMaskedParams:
+    epochs: int = 100
+    lr: float = 0.1
+    momentum: float = 0.9
+    epsilon: float = 0.01
+    num_steps: int = 10
+    step_size: float = 0.01
+    # todo: add sigma scheduler
+    sigma: float = 0.0
+    # todo: add beta scheduler
+    beta: float = 6.0
+    seed: int = 42
+    output_dir: str | None = None
+    certificate_every_epoch: int = 0
+    certificate_epoch_threshold: int = 200
+    checkpoint: str | None = None
+    cert_start: int = 0
+    cert_num: int = 100
+    distance: str = "l_inf"
+    pgd_on_clean: bool = False
 
 
 @dataclass
@@ -320,3 +345,32 @@ class AWPParams:
     weights_epsilon: float = 0.0
     warmup_steps: int = 10
     proxy_optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
+
+
+@dataclass
+class InputMaskParams:
+    warmup_steps: int = 10
+    p: float = 0.05
+    ratio: float = 0.25
+
+
+@dataclass
+class SmoothMaskedTrainingParams:
+    sigma: float = 0.25
+    sigma_scheduler: Optional[LinearScheduleConfig] = None
+
+    epsilon: float = 0.25
+    epsilon_scheduler: Optional[LinearScheduleConfig] = None
+
+    step_size: float = 0.025
+    steps: int = 10
+
+    num_noise_vec: int = 2
+    norm: str = "l2"
+
+    beta: float = 16.0
+    beta_scheduler: Optional[LinearScheduleConfig] = None
+
+    train_multi_noise: bool = True
+    clamp_noisy: bool = True
+    pgd_on_clean: bool = False

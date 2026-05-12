@@ -1,7 +1,7 @@
 import argparse
 import copy
 
-from src.config.awp import load_awp_config
+from src.config.trades_awp import load_awp_config
 from src.eval.validation import evaluate_adversarial
 from src.model.api import get_model
 from src.pkg import *

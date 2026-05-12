@@ -3,7 +3,8 @@ from typing import Optional
 from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, SmoothedAttackConfig, \
     StAdvAttackConfig, DatasetConfig, OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, \
     CertificationParams, TradesParams, EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, \
-    MacerTrainingParams, NormalizeConfig, LinearScheduleConfig, SmoothAdvTrainingParams, AWPParams
+    MacerTrainingParams, NormalizeConfig, LinearScheduleConfig, SmoothAdvTrainingParams, AWPParams, InputMaskParams, \
+    InputMaskParams, SmoothMaskedTrainingParams, TradesMaskedParams
 
 
 def _normalize_attack_loss_name(loss_name):
@@ -39,7 +40,6 @@ def _parse_attack(cfg: dict) -> AttackConfig:
 
     if attack_name == "smooth_pgd":
         return _parse_smoothed_attack(cfg)
-
 
     if attack_name == "stadv":
         return StAdvAttackConfig(
@@ -183,6 +183,29 @@ def _parse_trades_params(cfg: Optional[dict]) -> TradesParams:
         cert_num=cfg.get("cert_num", 100),
         distance=cfg.get("distance", "l_inf"),
     )
+
+def _parse_trades_masked_params(cfg: Optional[dict]) -> TradesMaskedParams:
+    cfg = cfg or {}
+    return TradesMaskedParams(
+        epochs=cfg.get("epochs", 100),
+        lr=cfg.get("lr", 0.1),
+        momentum=cfg.get("momentum", 0.9),
+        epsilon=cfg.get("epsilon", 0.01),
+        num_steps=cfg.get("perturb_steps", cfg.get("num_steps", 10)),
+        step_size=cfg.get("step_size", 0.01),
+        beta=cfg.get("beta", 0.01),
+        sigma=cfg.get("sigma", 0.01),
+        seed=cfg.get("seed", 42),
+        output_dir=cfg.get("output_dir", None),
+        certificate_every_epoch=cfg.get("certificate_every_epoch", False),
+        certificate_epoch_threshold=cfg.get("certificate_epoch_threshold", 200),
+        checkpoint=cfg.get("checkpoint", None),
+        cert_start=cfg.get("cert_start", 0),
+        cert_num=cfg.get("cert_num", 100),
+        distance=cfg.get("distance", "l_inf"),
+        pgd_on_clean=cfg.get("pgd_on_clean", False),
+    )
+
 
 
 def _parse_pgd(cfg: Optional[dict]) -> PGDAttackConfig:
@@ -365,4 +388,51 @@ def _parse_awp_params(cfg: dict) -> AWPParams:
         weights_diff_coef=cfg.get("weights_diff_coef", 0.01),
         warmup_steps=cfg.get("warmup_steps", 100),
         proxy_optimizer=_parse_optimizer(cfg.get("proxy_optimizer")),
+    )
+
+
+def _parse_input_mask_params(cfg: dict) -> InputMaskParams:
+    cfg = cfg or {}
+    return InputMaskParams(
+        p=cfg.get("p", 0.05),
+        ratio=cfg.get("ratio", 0.1),
+        warmup_steps=cfg.get("warmup_steps", 30),
+    )
+
+
+def _parse_smooth_adv_masked_params(cfg: dict) -> SmoothMaskedTrainingParams:
+    cfg = cfg or {}
+
+    sigma, sigma_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="sigma",
+        default_value=0.25,
+    )
+
+    epsilon, epsilon_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="epsilon",
+        default_value=0.25,
+    )
+
+    beta, beta_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="beta",
+        default_value=1,
+    )
+
+    return SmoothMaskedTrainingParams(
+        sigma=sigma,
+        sigma_scheduler=sigma_scheduler,
+        epsilon=epsilon,
+        epsilon_scheduler=epsilon_scheduler,
+        step_size=float(cfg.get("step_size", 0.025)),
+        steps=int(cfg.get("steps", 10)),
+        num_noise_vec=int(cfg.get("num_noise_vec", 2)),
+        norm=cfg.get("norm", "l2"),
+        train_multi_noise=bool(cfg.get("train_multi_noise", True)),
+        clamp_noisy=bool(cfg.get("clamp_noisy", True)),
+        beta=beta,
+        beta_scheduler=beta_scheduler,
+        pgd_on_clean=bool(cfg.get("pgd_on_clean", True))
     )
