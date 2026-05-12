@@ -28,6 +28,10 @@ def train_trades_masked(
     total_clean_loss = 0.0
     total_robust_loss = 0.0
     total_delta_norm = 0.0
+    total_masked_channels = 0
+    total_mask_total_channels = 0
+    total_masked_samples = 0
+    total_mask_total_samples = 0
 
     total_clean_correct = 0
     total_trades_adv_correct = 0
@@ -70,6 +74,11 @@ def train_trades_masked(
                 y=y_clean,
                 model=model,
             )
+            stats = getattr(mask_gen, "last_stats", {})
+            total_masked_channels += stats.get("num_masked_channels", 0)
+            total_mask_total_channels += stats.get("num_total_channels", 0)
+            total_masked_samples += stats.get("num_masked_samples", 0)
+            total_mask_total_samples += stats.get("num_total_samples", 0)
         else:
             x_attack = x_clean
             y_attack = y_clean
@@ -87,6 +96,11 @@ def train_trades_masked(
                 y=y_clean,
                 model=model,
             )
+            stats = getattr(mask_gen, "last_stats", {})
+            total_masked_channels += stats.get("num_masked_channels", 0)
+            total_mask_total_channels += stats.get("num_total_channels", 0)
+            total_masked_samples += stats.get("num_masked_samples", 0)
+            total_mask_total_samples += stats.get("num_total_samples", 0)
         else:
             x_train = x_adv
             y_train = y_attack
@@ -130,12 +144,23 @@ def train_trades_masked(
         total_trades_adv_correct += trades_adv_correct
         total_delta_norm += delta_norm * batch_size
 
+        masked_channel_fraction = (
+            total_masked_channels / total_mask_total_channels
+            if total_mask_total_channels > 0 else 0.0
+        )
+        masked_sample_fraction = (
+            total_masked_samples / total_mask_total_samples
+            if total_mask_total_samples > 0 else 0.0
+        )
+
         progress.set_postfix(
             loss=total_loss / total_samples,
             clean_acc=total_clean_correct / total_samples,
             trades_adv_acc=total_trades_adv_correct / total_samples,
             delta_norm=total_delta_norm / total_samples,
             beta=beta_eff,
+            mask_ch=masked_channel_fraction,
+            mask_img=masked_sample_fraction,
         )
 
     return {
@@ -151,4 +176,14 @@ def train_trades_masked(
         "alpha": alpha_eff,
         "pgd_on_clean": params.pgd_on_clean,
         "masking_enabled": need_mask,
+        "mask_ratio": mask_gen.ratio,
+        "mask_p": mask_gen.p,
+        "masked_channel_fraction": (
+            total_masked_channels / total_mask_total_channels
+            if total_mask_total_channels > 0 else 0.0
+        ),
+        "masked_sample_fraction": (
+            total_masked_samples / total_mask_total_samples
+            if total_mask_total_samples > 0 else 0.0
+        ),
     }

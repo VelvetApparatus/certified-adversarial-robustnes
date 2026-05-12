@@ -31,7 +31,6 @@ def train_smooth_adv_masked(
         mask_warmup: int,
         attack_cfg: SmoothedAttackConfig,
         params: SmoothMaskedTrainingParams,
-        pgd_on_clean: bool = True,
 
 ):
     model.train()
@@ -41,6 +40,10 @@ def train_smooth_adv_masked(
     total_smooth_adv_acc = 0.0
     total_delta_norm = 0.0
     total_samples = 0
+    total_masked_channels = 0
+    total_mask_total_channels = 0
+    total_masked_samples = 0
+    total_mask_total_samples = 0
 
     sigma_eff = get_scheduled(params.sigma, params.sigma_scheduler, epoch)
     adversary = get_adversary(
@@ -76,12 +79,17 @@ def train_smooth_adv_masked(
         y_clean = y
         batch_size = y_clean.size(0)
 
-        if need_masking and not pgd_on_clean:
+        if need_masking and not params.pgd_on_clean:
             x_attack, y_attack = mask_gen.augment_on_batch(
                 x=x_clean,
                 y=y_clean,
                 model=model,
             )
+            stats = getattr(mask_gen, "last_stats", {})
+            total_masked_channels += stats.get("num_masked_channels", 0)
+            total_mask_total_channels += stats.get("num_total_channels", 0)
+            total_masked_samples += stats.get("num_masked_samples", 0)
+            total_mask_total_samples += stats.get("num_total_samples", 0)
         else:
             x_attack = x_clean
             y_attack = y_clean
@@ -89,12 +97,17 @@ def train_smooth_adv_masked(
         x_adv = adversary.gen(model, x_attack, y_attack)
         x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
-        if need_masking and pgd_on_clean:
+        if need_masking and params.pgd_on_clean:
             x_train, y_train_base = mask_gen.augment_on_batch(
                 x=x_adv,
                 y=y_clean,
                 model=model,
             )
+            stats = getattr(mask_gen, "last_stats", {})
+            total_masked_channels += stats.get("num_masked_channels", 0)
+            total_mask_total_channels += stats.get("num_total_channels", 0)
+            total_masked_samples += stats.get("num_masked_samples", 0)
+            total_mask_total_samples += stats.get("num_total_samples", 0)
         else:
             x_train = x_adv
             y_train_base = y_attack
@@ -131,7 +144,7 @@ def train_smooth_adv_masked(
 
             noisy_acc = logits.argmax(dim=1).eq(y_train).float().mean().item()
 
-            delta_base = x_clean if pgd_on_clean else x_attack
+            delta_base = x_clean if params.pgd_on_clean else x_attack
             delta = x_adv - delta_base
             if params.norm == "l2":
                 delta_norm = delta.view(batch_size, -1).norm(p=2, dim=1).mean().item()
@@ -143,6 +156,24 @@ def train_smooth_adv_masked(
         total_clean_acc += clean_acc * batch_size
         total_smooth_adv_acc += noisy_acc * batch_size
         total_delta_norm += delta_norm * batch_size
+
+        masked_channel_fraction = (
+            total_masked_channels / total_mask_total_channels
+            if total_mask_total_channels > 0 else 0.0
+        )
+        masked_sample_fraction = (
+            total_masked_samples / total_mask_total_samples
+            if total_mask_total_samples > 0 else 0.0
+        )
+        progress.set_postfix(
+            loss=f"{total_loss / total_samples:.4f}",
+            clean_acc=f"{total_clean_acc / total_samples:.4f}",
+            adv_acc=f"{total_smooth_adv_acc / total_samples:.4f}",
+            delta=f"{total_delta_norm / total_samples:.4f}",
+            mask_ch=f"{masked_channel_fraction:.4f}",
+            mask_img=f"{masked_sample_fraction:.4f}",
+        )
+
     return {
         "loss": total_loss / total_samples,
         "clean_acc": total_clean_acc / total_samples,
@@ -151,5 +182,16 @@ def train_smooth_adv_masked(
         "sigma": sigma_eff,
         "epsilon": epsilon_eff,
         "alpha": alpha_eff,
-        "pgd_on_clean": pgd_on_clean,
+        "pgd_on_clean": params.pgd_on_clean,
+        "masking_enabled": need_masking,
+        "mask_ratio": mask_gen.ratio,
+        "mask_p": mask_gen.p,
+        "masked_channel_fraction": (
+            total_masked_channels / total_mask_total_channels
+            if total_mask_total_channels > 0 else 0.0
+        ),
+        "masked_sample_fraction": (
+            total_masked_samples / total_mask_total_samples
+            if total_mask_total_samples > 0 else 0.0
+        ),
     }

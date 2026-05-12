@@ -186,6 +186,18 @@ def _parse_trades_params(cfg: Optional[dict]) -> TradesParams:
 
 def _parse_trades_masked_params(cfg: Optional[dict]) -> TradesMaskedParams:
     cfg = cfg or {}
+
+    sigma, sigma_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="sigma",
+        default_value=0.0,
+    )
+    beta, beta_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="beta",
+        default_value=6.0,
+    )
+
     return TradesMaskedParams(
         epochs=cfg.get("epochs", 100),
         lr=cfg.get("lr", 0.1),
@@ -193,8 +205,11 @@ def _parse_trades_masked_params(cfg: Optional[dict]) -> TradesMaskedParams:
         epsilon=cfg.get("epsilon", 0.01),
         num_steps=cfg.get("perturb_steps", cfg.get("num_steps", 10)),
         step_size=cfg.get("step_size", 0.01),
-        beta=cfg.get("beta", 0.01),
-        sigma=cfg.get("sigma", 0.01),
+        sigma=sigma,
+        sigma_scheduler=sigma_scheduler,
+        beta=beta,
+        beta_scheduler=beta_scheduler,
+        norm=cfg.get("norm", cfg.get("distance", "Linf")),
         seed=cfg.get("seed", 42),
         output_dir=cfg.get("output_dir", None),
         certificate_every_epoch=cfg.get("certificate_every_epoch", False),
@@ -203,7 +218,7 @@ def _parse_trades_masked_params(cfg: Optional[dict]) -> TradesMaskedParams:
         cert_start=cfg.get("cert_start", 0),
         cert_num=cfg.get("cert_num", 100),
         distance=cfg.get("distance", "l_inf"),
-        pgd_on_clean=cfg.get("pgd_on_clean", False),
+        pgd_on_clean=bool(cfg.get("pgd_on_clean", True)),
     )
 
 

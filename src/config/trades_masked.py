@@ -40,7 +40,6 @@ def load_trades_masked_config(path: str) -> TradesMaskedTrainingConfig:
         "dataset",
         "split",
         "trades",
-        "attack",
         "input_mask",
         "normalization",
         "eval_pgd",

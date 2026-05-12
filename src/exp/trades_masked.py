@@ -49,7 +49,7 @@ def main():
         train_epoch_fn=train_trades_masked,
         training_kwargs={
             "mask_gen": mask_gen,
-            "mask_warmup": config.input_mask.warmup_steps,
+            "mask_gen_warmup": config.input_mask.warmup_steps,
             "attack_cfg": config.trainPGD,
             "params": config.trades,
         },

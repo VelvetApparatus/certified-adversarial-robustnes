@@ -303,10 +303,11 @@ class TradesMaskedParams:
     epsilon: float = 0.01
     num_steps: int = 10
     step_size: float = 0.01
-    # todo: add sigma scheduler
     sigma: float = 0.0
-    # todo: add beta scheduler
+    sigma_scheduler: Optional[LinearScheduleConfig] = None
     beta: float = 6.0
+    beta_scheduler: Optional[LinearScheduleConfig] = None
+    norm: str = "Linf"
     seed: int = 42
     output_dir: str | None = None
     certificate_every_epoch: int = 0
@@ -315,7 +316,7 @@ class TradesMaskedParams:
     cert_start: int = 0
     cert_num: int = 100
     distance: str = "l_inf"
-    pgd_on_clean: bool = False
+    pgd_on_clean: bool = True
 
 
 @dataclass
