@@ -43,8 +43,8 @@ def load_trades_masked_config(path: str) -> TradesMaskedTrainingConfig:
         "attack",
         "input_mask",
         "normalization",
-        "evalPGD",
-        "trainPGD",
+        "eval_pgd",
+        "train_pgd",
 
     ]
 
@@ -60,6 +60,6 @@ def load_trades_masked_config(path: str) -> TradesMaskedTrainingConfig:
         trades=_parse_trades_masked_params(raw["trades"]),
         input_mask=_parse_input_mask_params(raw["input_mask"]),
         normalization=_parse_normalization(raw["normalization"]),
-        evalPGD=_parse_pgd(raw["evalPGD"]),
-        trainPGD=_parse_pgd(raw["trainPGD"]),
+        evalPGD=_parse_pgd(raw["eval_pgd"]),
+        trainPGD=_parse_pgd(raw["train_pgd"]),
     )
