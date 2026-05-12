@@ -20,13 +20,13 @@ set -euo pipefail
 #python -m src.exp.evaluate --config configs/eval/evaluation-baseline-resnet18-cifar10.yaml
 
 echo "=== Evaluation Smooth Adv ==="
-python -m src.exp.smooth_adv --config
+python -m src.exp.smooth_adv --config configs/eval/smooth-adv-resnet18-cifar10.yaml
 
 echo "=== Evalutation Smooth Adv + AWP ==="
-python -m src.exp.awp_smooth_adv --config
+python -m src.exp.awp_smooth_adv --config configs/eval/AWP-smooth-adv-resnet18-cifar10.yaml
 
 echo "=== Evaluation TRADES AWP ==="
-python -m src.exp.evaluate -- config
+python -m src.exp.evaluate --config configs/eval/AWP-trades-resnet18-cifar10.yaml
 
 
 

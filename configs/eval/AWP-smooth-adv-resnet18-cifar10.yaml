@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/smooth_adv/cifar10_resnet18/resnet18_10_cifar10_20260511_121827/checkpoints/best.pth
+  weights_path: outputs/train/smoothed_awp/cifar10_resnet18/ResNet_cifar10_20260511_173454/checkpoints/best.pth
   pretrained: true
   num_classes: 10
 
@@ -23,8 +23,8 @@ pgd:
   loss_fn: cross_entropy
 
 params:
-  method: SmoothAdv
-  comment: resnet18_10 cifar10 SmoothAdv evaluation
+  method: SmoothAdv-AWP
+  comment: resnet18_10 cifar10 SmoothAdv AWP evaluation
   loss_fn: cross_entropy
   sigma: 0.25
   cert_mode: hard
