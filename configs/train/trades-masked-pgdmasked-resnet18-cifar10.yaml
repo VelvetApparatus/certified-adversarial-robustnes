@@ -20,7 +20,7 @@ split:
   seed: 42
   shuffle: true
 
-train:
+training:
   enabled: true
   epochs: 100
   seed: 42

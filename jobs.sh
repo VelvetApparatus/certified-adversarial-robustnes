@@ -37,10 +37,12 @@ run_job() {
 # run_job "adversarial_train_fgsm" "./cmd/adversarial_training_fgsm.sh"
 # run_job "smooth_adv" "./cmd/smooth_adv.sh"
 # run_job "awp trades" "./cmd/awp_trades.sh"
-run_job "awp smooth" "./cmd/smoothed_awp.sh"
+# run_job "awp smooth" "./cmd/smoothed_awp.sh"
 # run_job "macer" "./cmd/macer.sh"
 # run_job "trades" "./cmd/trades.sh"
 # run_job "gaussian_training" "./cmd/gaussian_training.sh"
+# run_job "smooth_adv_masked" "./cmd/smooth_adv_masked.sh"
+run_job "trades_masked" "./cmd/trades_masked.sh"
 # run_job "evaluation" "./cmd/evaluation.sh"
 
 echo "All training jobs finished successfully."
