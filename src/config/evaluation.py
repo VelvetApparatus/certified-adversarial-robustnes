@@ -1,10 +1,11 @@
 import os.path
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import yaml
 
-from src.config._parsers import _parse_dataset, _parse_fgsm, _parse_pgd, _parse_evaluation_table_params, _parse_model, _parse_normalization
+from src.config._parsers import _parse_dataset, _parse_fgsm, _parse_pgd, _parse_evaluation_table_params, _parse_model, \
+    _parse_normalization, _parse_wandb
 from src.config.common import ModelConfig, DatasetConfig, PGDAttackConfig, FGSMAttackConfig, EvaluationTableParams, \
-    NormalizeConfig
+    NormalizeConfig, WandbConfig
 
 
 @dataclass
@@ -26,6 +27,9 @@ class EvaluationExperimentConfig:
 
     # normalization
     normalization: NormalizeConfig
+
+    # optional experiment tracking
+    wandb: WandbConfig = field(default_factory=WandbConfig)
 
 
 def load_evaluate_config(path: str) -> EvaluationExperimentConfig:
@@ -62,5 +66,6 @@ def load_evaluate_config(path: str) -> EvaluationExperimentConfig:
         pgd=_parse_pgd(raw["pgd"]),
         fgsm=_parse_fgsm(raw["fgsm"]),
         params=_parse_evaluation_table_params(raw["params"]),
-        normalization=_parse_normalization(raw["normalization"])
+        normalization=_parse_normalization(raw["normalization"]),
+        wandb=_parse_wandb(raw.get("wandb")),
     )

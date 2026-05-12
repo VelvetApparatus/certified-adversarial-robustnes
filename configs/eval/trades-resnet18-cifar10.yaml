@@ -40,3 +40,12 @@ normalization:
   mean: [ 0.4914, 0.4822, 0.4465 ]
   std: [ 0.2470, 0.2435, 0.2616 ]
 
+wandb:
+  enabled: false
+  project: certified-robustness
+  entity:
+  run_name:
+  tags:
+    - evaluation
+    - cifar10
+    - resnet18
