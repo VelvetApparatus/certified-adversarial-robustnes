@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: /root/certified-adversarial-robustness/outputs/train/adversarial_fgsm/cifar10_resnet18/resnet18_10_cifar10_20260511_114520/checkpoints/best.pth
+  weights_path: outputs/train/smooth_adv/cifar10_resnet18/resnet18_10_cifar10_20260511_121827/checkpoints/best.pth
   pretrained: true
   num_classes: 10
 
@@ -10,12 +10,10 @@ test_dataset:
   download: true
   batch_size: 128
 
-
 fgsm:
   epsilon: 0.03137
   norm: Linf
   loss_fn: cross_entropy
-  random_start: True
 
 pgd:
   epsilon: 0.03137
@@ -23,24 +21,17 @@ pgd:
   steps: 20
   norm: Linf
   loss_fn: cross_entropy
-  random_start: True
-
-
 
 params:
-  method: adversarial-training-fgsm-eval
-  comment: resnet18_10 cifar10 adversarial FGSM training evaluation
+  method: SmoothAdv
+  comment: resnet18_10 cifar10 SmoothAdv evaluation
   loss_fn: cross_entropy
-
-  # used for noisy evaluation and randomized smoothing certification
   sigma: 0.25
-
-  # randomized smoothing certification
   cert_mode: hard
   N0: 100
   N: 100000
   alpha: 0.001
-  beta: 1.0
+  beta: 16.0
   evaluation_dir: data/out/evaluation/resnet18_cifar10
 
 
