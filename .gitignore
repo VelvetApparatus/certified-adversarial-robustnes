@@ -7,3 +7,16 @@ data/dataset
 __pycache__
 logs
 wandb
+creds
+# ML artifacts / checkpoints
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.onnx
+
+checkpoints/
+outputs/
+runs/
+wandb/

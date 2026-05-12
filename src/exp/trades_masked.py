@@ -58,7 +58,10 @@ def main():
         eval_fn=evaluate_adversarial,
         eval_kwargs={
             "adversary": eval_adversary,
-            "metrix_prefix": "pgd"
+            "metric_prefix": "pgd"
 
         }
     )
+
+if __name__ == '__main__':
+    main()
