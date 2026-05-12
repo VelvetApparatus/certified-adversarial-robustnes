@@ -1,0 +1,142 @@
+model:
+  name: resnet18_10
+  pretrained: false
+  weights_path: null
+  loss_fn: cross_entropy
+  num_classes: 10
+
+dataset:
+  name: cifar10
+  root_dir: ./data/dataset/cifar_10
+  train: true
+  download: true
+  batch_size: 128
+  num_workers: 2
+
+split:
+  enabled: true
+  eval_ratio: 0.1
+  eval_size: null
+  seed: 42
+  shuffle: true
+
+training:
+  enabled: true
+  epochs: 100
+  seed: 42
+  criterion: cross_entropy
+
+  checkpoint: null
+  save_dir: ./outputs/train/smooth_adv_masked_pgd_clean/cifar10_resnet18
+  save_best: true
+  save_last: true
+  metric_for_best_model: eval_smoothed_acc
+  metric_mode_for_best_model: max
+
+  optimizer:
+    name: sgd
+    lr: 0.1
+    weight_decay: 0.0005
+    momentum: 0.9
+    nesterov: true
+
+  scheduler:
+    name: cosine
+    step_size: 30
+    gamma: 0.1
+    eta_min: 0.0
+    milestones: [ ]
+
+  wandb:
+    enabled: true
+    project: certified-robustness
+    entity: null
+    run_name: smooth_adv_masked_cifar10_resnet18
+    tags:
+      - smooth-adv
+      - masked-input
+      - randomized-smoothing
+      - pgd_clean
+      - adversarial-training
+      - cifar10
+      - resnet18
+
+params:
+  # Gaussian noise for randomized smoothing.
+  sigma: 0.25
+
+  # SmoothAdv adversarial radius in raw pixel space.
+  # For L2 smoothing-style experiments, values like 0.25 are common.
+  epsilon:
+    value: 0.25
+    scheduler:
+      enabled: true
+      type: linear
+      start: 0.0
+      end: 0.25
+      warmup_epochs: 0
+      ramp_epochs: 10
+
+  step_size: 0.025
+  steps: 10
+
+  # Number of noise vectors used to approximate smoothed loss.
+  num_noise_vec: 2
+
+  # Usually SmoothAdv is used with L2.
+  norm: l2
+
+  # If true, train on all noisy copies.
+  train_multi_noise: true
+
+  # Practical CIFAR version: keep images in [0,1] after noise.
+  clamp_noisy: true
+
+  pgd_on_clean: true
+
+  # beta is inverse temperature parameter
+  beta:
+    value: 4.0
+    scheduler:
+      enabled: true
+      type: linear
+      start: 1.0
+      end: 4.0
+      warmup_epochs: 10
+      ramp_epochs: 30
+
+attack:
+  name: smooth_pgd
+  epsilon:
+    value: 0.25
+    scheduler:
+      enabled: true
+      type: linear
+      start: 0.0
+      end: 0.25
+      warmup_epochs: 0
+      ramp_epochs: 10
+  alpha:
+    value: 0.025
+    scheduler:
+      enabled: true
+      type: linear
+      start: 0.0
+      end: 0.025
+      warmup_epochs: 0
+      ramp_epochs: 10
+  steps: 10
+  norm: l2
+  random_start: true
+  clamp_noisy: true
+
+normalization:
+  enabled: true
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2470, 0.2435, 0.2616 ]
+
+
+input_mask:
+  p: 0.05
+  ratio: 0.25
+  warmup_steps: 25
