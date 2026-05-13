@@ -94,7 +94,7 @@ attack:
       end: 0.025
       warmup_epochs: 0
       ramp_epochs: 10
-  steps: 10
+  steps: 5
   norm: l2
   random_start: true
   clamp_noisy: true

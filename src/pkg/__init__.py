@@ -1,4 +1,4 @@
-from src.pkg.device import get_device
+from src.pkg.device import get_device, should_use_data_parallel, with_data_parallel, unwrap_model
 from src.pkg.seed import set_seed
 from src.pkg.get_loss_fn import get_loss_fn
 from src.pkg.optimizer import get_optimizer
@@ -16,4 +16,8 @@ __all__ = [
     "update_metrics",
     "finalize_metrics",
     "InputNormalizer",
+    "should_use_data_parallel",
+    "with_data_parallel",
+    "unwrap_model",
+
 ]

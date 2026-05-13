@@ -19,7 +19,10 @@ from src.config.common import (
 from src.config.secret import WANDB_TOKEN
 from src.db.api import build_train_eval_loaders
 from src.model.api import get_model
-from src.pkg import init_metrics, update_metrics, finalize_metrics, get_optimizer, get_scheduler, InputNormalizer
+from src.pkg import (
+    get_optimizer, get_scheduler, InputNormalizer,
+    with_data_parallel, unwrap_model
+)
 
 
 def prefix_metrics(prefix: str, metrics: dict) -> dict:
@@ -90,6 +93,8 @@ def save_checkpoint(
         best_metric_name: str,
         best_metric_mode: str,
 ):
+    # unwrap from nn.DataParallel (if wasn't wrapped return same model)
+    model = unwrap_model(model)
     net = model.model if isinstance(model, InputNormalizer) else model
 
     state = {
@@ -124,7 +129,7 @@ def train(
         loss_fn,
         train_epoch_fn: Callable,
         eval_fn: Callable,
-        model: ModelConfig |torch.nn.Module = None,
+        model: ModelConfig | torch.nn.Module = None,
         config_path: str | None = None,
         optimizer=None,
         model_is_prepared: bool = False,
@@ -144,9 +149,6 @@ def train(
         split_cfg=split_config,
     )
 
-    if optimizer is None:
-        optimizer = get_optimizer(model, cfg.optimizer)
-
     if norm_cfg is not None and norm_cfg.enabled and not model_is_prepared:
         model = InputNormalizer(
             model=model,
@@ -156,6 +158,12 @@ def train(
         model = model.to(device)
 
     model_name = resolve_model_name(model)
+
+    # wrap only if device is cuda with multiple GPU
+    model = with_data_parallel(model, device)
+
+    if optimizer is None:
+        optimizer = get_optimizer(model, cfg.optimizer)
 
     scheduler = get_scheduler(optimizer, cfg.scheduler, epochs=cfg.epochs)
 
@@ -187,6 +195,8 @@ def train(
     )
     best_metric = initial_best_metric(best_metric_mode)
 
+    # TODO:
+    #   not work with nn data parallel, update later
     if cfg.checkpoint is not None:
         checkpoint = torch.load(cfg.checkpoint, map_location=device)
         model.load_state_dict(checkpoint["net"])
