@@ -84,8 +84,8 @@ eval_pgd:
 
 awp:
   weights_diff_coef: 0.005
-  weights_epsilon: 0.001
-  warmup_steps: 10
+  weights_epsilon: 1.0e-20
+  warmup_steps: 20
   proxy_optimizer:
     name: sgd
     lr: 0.01
@@ -96,7 +96,7 @@ awp:
 input_mask:
   p: 0.05
   ratio: 0.25
-  warmup_steps: 25
+  warmup_steps: 30
 
 normalization:
   enabled: true
