@@ -341,6 +341,27 @@ class SmoothAdvTrainingParams:
 
 
 @dataclass
+class TradesSmoothAdvParams:
+    sigma: float = 0.25
+    sigma_scheduler: Optional[LinearScheduleConfig] = None
+
+    beta: float = 6.0
+    beta_scheduler: Optional[LinearScheduleConfig] = None
+
+    lambda_smooth: float = 1.0
+    lambda_smooth_scheduler: Optional[LinearScheduleConfig] = None
+
+    num_noise_vec: int = 2
+    train_multi_noise: bool = True
+    clamp_noisy: bool = True
+
+    consistency_type: str = "none"
+    consistency_weight: float = 0.0
+    consistency_scheduler: Optional[LinearScheduleConfig] = None
+    consistency_detach_clean: bool = True
+
+
+@dataclass
 class AWPParams:
     weights_diff_coef: float = 0.0
     weights_epsilon: float = 0.0
