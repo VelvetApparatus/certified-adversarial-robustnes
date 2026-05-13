@@ -4,7 +4,7 @@ from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, S
     StAdvAttackConfig, DatasetConfig, OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, \
     CertificationParams, TradesParams, EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, \
     MacerTrainingParams, NormalizeConfig, LinearScheduleConfig, SmoothAdvTrainingParams, AWPParams, InputMaskParams, \
-    InputMaskParams, SmoothMaskedTrainingParams, TradesMaskedParams
+    InputMaskParams, SmoothMaskedTrainingParams, TradesMaskedParams, TradesSmoothAdvParams
 
 
 def _normalize_attack_loss_name(loss_name):
@@ -392,6 +392,50 @@ def _parse_smooth_adv_params(cfg: dict) -> SmoothAdvTrainingParams:
         clamp_noisy=bool(cfg.get("clamp_noisy", True)),
         beta=beta,
         beta_scheduler=beta_scheduler,
+    )
+
+
+def _parse_trades_smooth_adv_params(cfg: dict) -> TradesSmoothAdvParams:
+    cfg = cfg or {}
+
+    sigma, sigma_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="sigma",
+        default_value=0.25,
+    )
+
+    beta, beta_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="beta",
+        default_value=6.0,
+    )
+
+    lambda_smooth, lambda_smooth_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="lambda_smooth",
+        default_value=1.0,
+    )
+
+    consistency_weight, consistency_scheduler = _parse_value_with_scheduler(
+        cfg=cfg,
+        key="consistency_weight",
+        default_value=0.0,
+    )
+
+    return TradesSmoothAdvParams(
+        sigma=sigma,
+        sigma_scheduler=sigma_scheduler,
+        beta=beta,
+        beta_scheduler=beta_scheduler,
+        lambda_smooth=lambda_smooth,
+        lambda_smooth_scheduler=lambda_smooth_scheduler,
+        num_noise_vec=int(cfg.get("num_noise_vec", 2)),
+        train_multi_noise=bool(cfg.get("train_multi_noise", True)),
+        clamp_noisy=bool(cfg.get("clamp_noisy", True)),
+        consistency_type=cfg.get("consistency_type", "none"),
+        consistency_weight=consistency_weight,
+        consistency_scheduler=consistency_scheduler,
+        consistency_detach_clean=bool(cfg.get("consistency_detach_clean", True)),
     )
 
 
