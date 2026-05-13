@@ -1,0 +1,107 @@
+model:
+  name: resnet18_10
+  pretrained: false
+  weights_path: null
+  loss_fn: cross_entropy
+  num_classes: 10
+
+dataset:
+  name: cifar10
+  root_dir: ./data/dataset/cifar_10
+  train: true
+  download: true
+  batch_size: 128
+
+split:
+  enabled: true
+  eval_ratio: 0.1
+  eval_size: null
+  seed: 42
+  shuffle: true
+
+training:
+  enabled: true
+  epochs: 100
+  seed: 42
+  criterion: cross_entropy
+  checkpoint: null
+  save_dir: ./outputs/train/trades_awp_masked_pgd_masked/cifar10_resnet18
+  save_best: true
+  save_last: true
+  metric_for_best_model: eval_pgd_acc
+  metric_mode_for_best_model: max
+
+  optimizer:
+    name: sgd
+    lr: 0.1
+    weight_decay: 0.0005
+    momentum: 0.9
+    nesterov: true
+
+  scheduler:
+    name: cosine
+    eta_min: 0.0
+
+  wandb:
+    enabled: true
+    project: certified-robustness
+    entity: null
+    run_name: trades_awp_masked_pgd_masked_cifar10_resnet18
+    tags:
+      - trades
+      - awp
+      - masked-input
+      - pgd_masked
+      - cifar10
+      - resnet18
+
+trades:
+  epsilon: 0.031372549
+  step_size: 0.007843137
+  perturb_steps: 10
+  beta: 6.0
+  distance: l_inf
+  norm: Linf
+  pgd_on_clean: false
+
+train_pgd:
+  name: pgd
+  epsilon: 0.031372549
+  alpha: 0.007843137
+  steps: 10
+  norm: Linf
+  loss_fn: kl_divergence
+  random_start: true
+
+eval_pgd:
+  name: pgd
+  epsilon: 0.031372549
+  alpha: 0.007843137
+  steps: 20
+  norm: Linf
+  loss_fn: cross_entropy
+  random_start: true
+
+
+awp:
+  weights_diff_coef: 0.005
+  weights_epsilon: 1.0e-20
+  warmup_steps: 20
+  proxy_optimizer:
+    name: sgd
+    lr: 0.01
+    weight_decay: 0.0005
+    momentum: 0.9
+    nesterov: false
+
+
+
+input_mask:
+  p: 0.05
+  ratio: 0.25
+  warmup_steps: 30
+
+normalization:
+  enabled: true
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2470, 0.2435, 0.2616 ]
