@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/awp_trades/cifar10_resnet18/ResNet_cifar10_20260511_152521/checkpoints/best.pth
+  weights_path: data/models/resnet/resnet_18_cifar_10/resnet18_cifar10_full.pth
   pretrained: true
   num_classes: 10
 
@@ -22,16 +22,17 @@ pgd:
   norm: Linf
   loss_fn: cross_entropy
 
+
 params:
-  method: TRADES-AWP
-  comment: resnet18_10 cifar10 TRADES AWP evaluation
+  method: baseline-evaluation
+  comment: resnet18_10 cifar10 baseline clean evaluation
   loss_fn: cross_entropy
   sigma: 0.25
   cert_mode: hard
   N0: 100
   N: 100000
   alpha: 0.001
-  beta: 16.0
+  beta: 1.0
   evaluation_dir: data/out/evaluation/resnet18_cifar10
 
 

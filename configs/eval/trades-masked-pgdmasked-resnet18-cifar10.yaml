@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/awp_trades/cifar10_resnet18/ResNet_cifar10_20260511_152521/checkpoints/best.pth
+  weights_path: outputs/train/trades_masked_pgd_masked/cifar10_resnet18/ResNet_cifar10_20260512_201707/checkpoints/best.pth
   pretrained: true
   num_classes: 10
 
@@ -23,8 +23,8 @@ pgd:
   loss_fn: cross_entropy
 
 params:
-  method: TRADES-AWP
-  comment: resnet18_10 cifar10 TRADES AWP evaluation
+  method: trades-masked-pgdmasked
+  comment: resnet18_10 cifar10 TRADES masked PGD-masked evaluation
   loss_fn: cross_entropy
   sigma: 0.25
   cert_mode: hard
