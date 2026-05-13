@@ -1,60 +1,61 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/adversarial_fgsm/cifar10_resnet18/resnet18_10_cifar10_20260511_114520/checkpoints/best.pth
   pretrained: true
+  weights_path: outputs/train/adversarial_fgsm/cifar10_resnet18/resnet18_10_cifar10_20260511_114520/checkpoints/best.pth
+  loss_fn: cross_entropy
   num_classes: 10
-
 test_dataset:
   name: cifar10
   root_dir: data/dataset/cifar_10
+  train: false
   download: true
   batch_size: 128
-
-
-fgsm:
-  epsilon: 0.03137
-  norm: Linf
-  loss_fn: cross_entropy
-  random_start: True
-
+  normalize:
+    enabled: false
+    std: null
+    mean: null
 pgd:
+  name: pgd
   epsilon: 0.03137
   alpha: 0.00784
   steps: 20
   norm: Linf
   loss_fn: cross_entropy
-  random_start: True
-
-
-
+  random_start: true
+  epsilon_scheduler: null
+  alpha_scheduler: null
+fgsm:
+  name: fgsm
+  epsilon: 0.03137
+  loss_fn: cross_entropy
+  random_start: false
 params:
   method: adversarial-training-fgsm-eval
   comment: resnet18_10 cifar10 adversarial FGSM training evaluation
   loss_fn: cross_entropy
-
-  # used for noisy evaluation and randomized smoothing certification
   sigma: 0.25
-
-  # randomized smoothing certification
   cert_mode: hard
   N0: 100
   N: 10000
   alpha: 0.001
   beta: 1.0
   evaluation_dir: data/out/evaluation/resnet18_cifar10/last
-
-
 normalization:
   enabled: true
-  mean: [ 0.4914, 0.4822, 0.4465 ]
-  std: [ 0.2470, 0.2435, 0.2616 ]
-
+  std:
+  - 0.247
+  - 0.2435
+  - 0.2616
+  mean:
+  - 0.4914
+  - 0.4822
+  - 0.4465
 wandb:
   enabled: true
   project: certified-robustness
-  entity:
-  run_name:
+  entity: null
+  run_name: null
   tags:
-    - evaluation
-    - cifar10
-    - resnet18
+  - evaluation
+  - cifar10
+  - resnet18
