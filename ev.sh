@@ -73,17 +73,17 @@ run_eval() {
 # Masked methods
 # ============================================================
 
-run_eval "smooth_adv_masked_pgd_clean" \
-  "configs/eval/smooth-adv-masked-pgdclean-resnet18-cifar10.yaml"
+# run_eval "smooth_adv_masked_pgd_clean" \
+#   "configs/eval/smooth-adv-masked-pgdclean-resnet18-cifar10.yaml"
 
-run_eval "smooth_adv_masked_pgd_masked" \
-  "configs/eval/smooth-adv-masked-pgdmasked-resnet18-cifar10.yaml"
+# run_eval "smooth_adv_masked_pgd_masked" \
+#   "configs/eval/smooth-adv-masked-pgdmasked-resnet18-cifar10.yaml"
 
-run_eval "trades_masked_pgd_clean" \
-  "configs/eval/trades-masked-pgdclean-resnet18-cifar10.yaml"
+# run_eval "trades_masked_pgd_clean" \
+#   "configs/eval/trades-masked-pgdclean-resnet18-cifar10.yaml"
 
-run_eval "trades_masked_pgd_masked" \
-  "configs/eval/trades-masked-pgdmasked-resnet18-cifar10.yaml"
+# run_eval "trades_masked_pgd_masked" \
+#   "configs/eval/trades-masked-pgdmasked-resnet18-cifar10.yaml"
 
 # ============================================================
 # Future combined methods
@@ -94,6 +94,14 @@ run_eval "trades_masked_pgd_masked" \
 
 # run_eval "smooth_adv_awp_masked" \
 #   "configs/eval/smooth-adv-awp-masked-resnet18-cifar10.yaml"
+
+# ============================================================
+# Future combined methods
+# ============================================================
+run_eval "trades-awp-masked" "configs/eval/trades-awp-masked-pgdmasked-resnet18-cifar10.yaml"
+run_eval "trades-smoothad-consistency"  "configs/eval/trades-smoothadv-consistency-resnet18-cifar10.yaml"
+
+
 
 echo "============================================================"
 echo "All available evaluations finished."

@@ -42,8 +42,10 @@ run_job() {
 # run_job "trades" "./cmd/trades.sh"
 # run_job "gaussian_training" "./cmd/gaussian_training.sh"
 # run_job "smooth_adv_masked" "./cmd/smooth_adv_masked.sh"
-run_job "trades_masked" "./cmd/trades_masked.sh"
+# run_job "trades_masked" "./cmd/trades_masked.sh"
 # run_job "evaluation" "./cmd/evaluation.sh"
+# run_job "trades_awp_masked" "./cmd/trades_awp_masked.sh"
+run_job "trades_smoothadv_consistency" "./cmd/trades_smoothadv_consistency.sh" 
 
 echo "All training jobs finished successfully."
 echo "Logs saved to: $LOG_DIR"
