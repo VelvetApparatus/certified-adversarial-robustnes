@@ -1,27 +1,34 @@
 model:
   name: resnet18_10
-  weights_path: outputs/train/awp_trades/cifar10_resnet18/ResNet_cifar10_20260511_152521/checkpoints/best.pth
   pretrained: true
+  weights_path: outputs/train/awp_trades/cifar10_resnet18/ResNet_cifar10_20260511_152521/checkpoints/best.pth
+  loss_fn: cross_entropy
   num_classes: 10
-
 test_dataset:
   name: cifar10
   root_dir: data/dataset/cifar_10
+  train: false
   download: true
   batch_size: 128
-
-fgsm:
-  epsilon: 0.03137
-  norm: Linf
-  loss_fn: cross_entropy
-
+  normalize:
+    enabled: false
+    std: null
+    mean: null
 pgd:
+  name: pgd
   epsilon: 0.03137
   alpha: 0.00784
   steps: 20
   norm: Linf
   loss_fn: cross_entropy
-
+  random_start: true
+  epsilon_scheduler: null
+  alpha_scheduler: null
+fgsm:
+  name: fgsm
+  epsilon: 0.03137
+  loss_fn: cross_entropy
+  random_start: false
 params:
   method: TRADES-AWP
   comment: resnet18_10 cifar10 TRADES AWP evaluation
@@ -33,19 +40,22 @@ params:
   alpha: 0.001
   beta: 16.0
   evaluation_dir: data/out/evaluation/resnet18_cifar10/last
-
-
 normalization:
   enabled: true
-  mean: [ 0.4914, 0.4822, 0.4465 ]
-  std: [ 0.2470, 0.2435, 0.2616 ]
-
+  std:
+  - 0.247
+  - 0.2435
+  - 0.2616
+  mean:
+  - 0.4914
+  - 0.4822
+  - 0.4465
 wandb:
   enabled: true
   project: certified-robustness
-  entity:
-  run_name:
+  entity: null
+  run_name: null
   tags:
-    - evaluation
-    - cifar10
-    - resnet18
+  - evaluation
+  - cifar10
+  - resnet18

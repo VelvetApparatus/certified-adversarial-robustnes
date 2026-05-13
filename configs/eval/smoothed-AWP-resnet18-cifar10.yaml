@@ -29,10 +29,10 @@ params:
   sigma: 0.25
   cert_mode: hard
   N0: 100
-  N: 100000
+  N: 10000
   alpha: 0.001
   beta: 16.0
-  evaluation_dir: data/out/evaluation/resnet18_cifar10
+  evaluation_dir: data/out/evaluation/resnet18_cifar10/last
 
 
 normalization:
@@ -41,7 +41,7 @@ normalization:
   std: [ 0.2470, 0.2435, 0.2616 ]
 
 wandb:
-  enabled: false
+  enabled: true
   project: certified-robustness
   entity:
   run_name:
