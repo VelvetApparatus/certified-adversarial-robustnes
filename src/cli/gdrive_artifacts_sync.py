@@ -584,17 +584,49 @@ def command_sync_files(args):
     manifest_path = Path(args.manifest)
     manifest = load_manifest(manifest_path)
 
+    base_dir = Path(args.base_dir).resolve() if args.base_dir else None
+
+    folder_cache: dict[str, str] = {
+        ".": root_folder_id,
+    }
+
     for raw_path in args.files:
         path = Path(raw_path).resolve()
+
+        if base_dir is not None:
+            try:
+                relative_path_obj = path.relative_to(base_dir)
+            except ValueError:
+                raise ValueError(
+                    f"File is not inside --base-dir:\n"
+                    f"  file: {path}\n"
+                    f"  base: {base_dir}"
+                )
+
+            relative_dir = relative_path_obj.parent
+            relative_path_str = relative_path_obj.as_posix()
+            relative_dir_key = relative_dir.as_posix()
+
+            if relative_dir_key not in folder_cache:
+                folder_cache[relative_dir_key] = get_or_create_drive_path(
+                    service=service,
+                    root_folder_id=root_folder_id,
+                    relative_dir=relative_dir,
+                )
+
+            target_folder_id = folder_cache[relative_dir_key]
+        else:
+            relative_path_str = path.name
+            target_folder_id = root_folder_id
 
         result = sync_file(
             service=service,
             local_path=path,
             root_folder_id=root_folder_id,
-            target_folder_id=root_folder_id,
+            target_folder_id=target_folder_id,
             manifest=manifest,
             force_sha_check=args.force_sha_check,
-            relative_path=path.name,
+            relative_path=relative_path_str,
         )
 
         print(result)
@@ -668,6 +700,15 @@ def build_parser():
         action="store_true",
         help="Always calculate sha256 and check Drive appProperties.",
     )
+
+    sync_files.add_argument(
+    "--base-dir",
+    default=None,
+    help=(
+        "Base directory for preserving relative paths in sync-files. "
+        "If omitted, files are uploaded directly to the target folder."
+    ),
+    )
     sync_files.set_defaults(func=command_sync_files)
 
     list_cmd = subparsers.add_parser(
@@ -675,6 +716,7 @@ def build_parser():
         help="List files from local manifest.",
     )
     list_cmd.set_defaults(func=command_list)
+
 
     return parser
 
