@@ -195,6 +195,8 @@ def init_eval_wandb_if_needed(cfg, run_eval_dir: str, config_path: str, timestam
                     "steps": cfg.pgd.steps,
                     "norm": cfg.pgd.norm,
                     "loss_fn": cfg.pgd.loss_fn,
+                    "random_start": cfg.pgd.random_start,
+                    "restarts": cfg.pgd.restarts,
                 },
                 "fgsm": {
                     "epsilon": cfg.fgsm.epsilon,

@@ -4,6 +4,7 @@ from src.config.common import PGDAttackConfig, FGSMAttackConfig
 from src.pkg import get_loss_fn
 
 import torch
+import torch.nn.functional as F
 from tqdm import tqdm
 from src.robustness.input.adversarial_training import AdversarialGenerator
 
@@ -33,6 +34,7 @@ def evaluate(
         lossfn=pgd_conf.loss_fn,
         norm=pgd_conf.norm,
         steps=pgd_conf.steps,
+        random_start=pgd_conf.random_start,
     )
 
     pgd_adversary = AdversarialGenerator(
@@ -94,7 +96,7 @@ def evaluate(
         # =====================
         with torch.no_grad():
             noise = torch.randn_like(x) * sigma
-            x_noisy = x + noise
+            x_noisy = torch.clamp(x + noise, 0.0, 1.0)
 
             logits = model(x_noisy)
             loss = loss_fn(logits, y)
@@ -107,11 +109,44 @@ def evaluate(
         # PGD evaluation
         # =====================
         model.eval()
-        x_pgd_adv, y_pgd_adv = pgd_adversary.augment_on_batch(
-            x=x,
-            y=y,
-            model=model,
-        )
+        if pgd_conf.restarts == 1:
+            x_pgd_adv, y_pgd_adv = pgd_adversary.augment_on_batch(
+                x=x,
+                y=y,
+                model=model,
+            )
+        else:
+            best_x_adv = None
+            best_y_adv = None
+            best_loss = None
+
+            for _ in range(pgd_conf.restarts):
+                x_adv, y_adv = pgd_adversary.augment_on_batch(
+                    x=x,
+                    y=y,
+                    model=model,
+                )
+
+                with torch.no_grad():
+                    logits_adv = model(x_adv)
+                    losses = F.cross_entropy(logits_adv, y_adv, reduction="none")
+
+                x_adv = x_adv.detach()
+                y_adv = y_adv.detach()
+
+                if best_loss is None:
+                    best_loss = losses.detach()
+                    best_x_adv = x_adv
+                    best_y_adv = y_adv
+                    continue
+
+                mask = losses > best_loss
+                best_loss = torch.where(mask, losses, best_loss)
+                best_x_adv[mask] = x_adv[mask]
+                best_y_adv[mask] = y_adv[mask]
+
+            x_pgd_adv = best_x_adv
+            y_pgd_adv = best_y_adv
 
         x_pgd_adv = x_pgd_adv.to(device)
         y_pgd_adv = y_pgd_adv.to(device)

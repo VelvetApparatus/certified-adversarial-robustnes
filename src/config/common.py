@@ -116,9 +116,9 @@ class PGDAttackConfig:
 
     loss_fn: AttackLossName = "cross_entropy"
     random_start: bool = True
+    restarts: int = 1
     epsilon_scheduler: Optional[LinearScheduleConfig] = None
     alpha_scheduler: Optional[LinearScheduleConfig] = None
-    random_start: bool = True
 
 
 @dataclass

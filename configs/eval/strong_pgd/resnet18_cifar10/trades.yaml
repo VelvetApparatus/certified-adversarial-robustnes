@@ -1,0 +1,53 @@
+model:
+  name: resnet18_10
+  weights_path: outputs/train/trades/cifar10_resnet18/resnet18_10_cifar10_20260508_144417/checkpoints/best.pth
+  pretrained: true
+  num_classes: 10
+
+test_dataset:
+  name: cifar10
+  root_dir: data/dataset/cifar_10
+  download: true
+  batch_size: 128
+
+fgsm:
+  epsilon: 0.03137
+  norm: Linf
+  loss_fn: cross_entropy
+
+pgd:
+  epsilon: 0.031372549
+  alpha: 0.0039215686
+  steps: 50
+  norm: Linf
+  loss_fn: cross_entropy
+  random_start: true
+  restarts: 5
+
+params:
+  method: trades
+  comment: resnet18_10 cifar10 trades evaluation with PGD-50 x5 restarts
+  loss_fn: cross_entropy
+  sigma: 0.25
+  cert_mode: hard
+  N0: 100
+  N: 10000
+  alpha: 0.001
+  beta: 16.0
+  evaluation_dir: data/out/evaluation/resnet18_cifar10/strong_pgd
+
+normalization:
+  enabled: true
+  mean: [0.4914, 0.4822, 0.4465]
+  std: [0.2470, 0.2435, 0.2616]
+
+wandb:
+  enabled: true
+  project: certified-robustness
+  entity:
+  run_name:
+  tags:
+    - evaluation
+    - cifar10
+    - resnet18
+    - strong-pgd

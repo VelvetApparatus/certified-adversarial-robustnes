@@ -236,6 +236,9 @@ def _parse_pgd(cfg: Optional[dict]) -> PGDAttackConfig:
         key="alpha",
         default_value=0.01,
     )
+    restarts = int(cfg.get("restarts", 1))
+    if restarts <= 0:
+        raise ValueError("PGD config field 'restarts' must be a positive integer")
 
     return PGDAttackConfig(
         name=cfg.get("name", "pgd"),
@@ -245,6 +248,7 @@ def _parse_pgd(cfg: Optional[dict]) -> PGDAttackConfig:
         norm=cfg.get("norm", "l2"),
         loss_fn=_normalize_attack_loss_name(cfg.get("loss_fn", "cross_entropy")),
         random_start=cfg.get("random_start", True),
+        restarts=restarts,
         epsilon_scheduler=epsilon_scheduler,
         alpha_scheduler=alpha_scheduler,
     )
