@@ -28,6 +28,10 @@ python -m src.exp.evaluate --config configs/eval/AWP-smooth-adv-resnet18-cifar10
 echo "=== Evaluation TRADES AWP ==="
 python -m src.exp.evaluate --config configs/eval/AWP-trades-resnet18-cifar10.yaml
 
+echo "=== Evaluation TRADES SmoothAdv Consistency Masked ==="
+# Placeholder checkpoint path in config; update configs/eval/trades-smoothadv-consistency-masked-resnet18-cifar10.yaml after training.
+# python -m src.exp.evaluate --config configs/eval/trades-smoothadv-consistency-masked-resnet18-cifar10.yaml
+
 echo "=== Evaluation TRADES Masked ==="
 
 
