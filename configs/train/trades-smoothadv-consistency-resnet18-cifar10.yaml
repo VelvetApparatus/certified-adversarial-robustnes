@@ -21,7 +21,7 @@ split:
 
 training:
   enabled: true
-  epochs: 100
+  epochs: 140
   seed: 42
   criterion: cross_entropy
   checkpoint: null
@@ -30,6 +30,9 @@ training:
   save_last: true
   metric_for_best_model: eval_pgd_acc
   metric_mode_for_best_model: max
+
+
+
 
   optimizer:
     name: sgd
@@ -58,19 +61,19 @@ training:
 params:
   sigma: 0.25
   beta: 6.0
-  lambda_smooth: 1.0
+  lambda_smooth: 0.75
   num_noise_vec: 2
   train_multi_noise: true
   clamp_noisy: true
   consistency_type: kl_clean_adv_smooth
   consistency_weight:
-    value: 0.5
+    value: 0.35
     scheduler:
       enabled: true
       type: linear
       start: 0.0
-      end: 0.5
-      warmup_epochs: 10
+      end: 0.35
+      warmup_epochs: 20
       ramp_epochs: 30
   consistency_detach_clean: true
 
@@ -83,7 +86,7 @@ attack:
       type: linear
       start: 0.0
       end: 0.25
-      warmup_epochs: 0
+      warmup_epochs: 10
       ramp_epochs: 10
   alpha:
     value: 0.025
@@ -119,5 +122,5 @@ eval_pgd:
 
 normalization:
   enabled: true
-  mean: [0.4914, 0.4822, 0.4465]
-  std: [0.2470, 0.2435, 0.2616]
+  mean: [ 0.4914, 0.4822, 0.4465 ]
+  std: [ 0.2470, 0.2435, 0.2616 ]

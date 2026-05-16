@@ -21,7 +21,7 @@ split:
 
 training:
   enabled: true
-  epochs: 140
+  epochs: 100
   seed: 42
   criterion: cross_entropy
   checkpoint: null

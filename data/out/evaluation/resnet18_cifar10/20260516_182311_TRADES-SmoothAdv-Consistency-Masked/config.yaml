@@ -1,0 +1,64 @@
+model:
+  name: resnet18_10
+  pretrained: true
+  weights_path: outputs/train/trades_smoothadv_consistency_masked/cifar10_resnet18/ResNet_cifar10_20260516_154930/checkpoints/best.pth
+  loss_fn: cross_entropy
+  num_classes: 10
+test_dataset:
+  name: cifar10
+  root_dir: data/dataset/cifar_10
+  train: false
+  download: true
+  batch_size: 128
+  normalize:
+    enabled: false
+    std: null
+    mean: null
+pgd:
+  name: pgd
+  epsilon: 0.03137
+  alpha: 0.00784
+  steps: 20
+  norm: Linf
+  loss_fn: cross_entropy
+  random_start: true
+  restarts: 1
+  epsilon_scheduler: null
+  alpha_scheduler: null
+fgsm:
+  name: fgsm
+  epsilon: 0.03137
+  loss_fn: cross_entropy
+  random_start: false
+params:
+  method: TRADES-SmoothAdv-Consistency-Masked
+  comment: resnet18_10 cifar10 combined TRADES + SmoothAdv + consistency + input masking
+    evaluation
+  loss_fn: cross_entropy
+  sigma: 0.25
+  cert_mode: hard
+  N0: 100
+  N: 10000
+  alpha: 0.001
+  beta: 16.0
+  evaluation_dir: data/out/evaluation/resnet18_cifar10
+normalization:
+  enabled: true
+  std:
+  - 0.247
+  - 0.2435
+  - 0.2616
+  mean:
+  - 0.4914
+  - 0.4822
+  - 0.4465
+wandb:
+  enabled: false
+  project: certified-robustness
+  entity: null
+  run_name: null
+  tags:
+  - evaluation
+  - cifar10
+  - resnet18
+  - trades-smoothadv-consistency-masked

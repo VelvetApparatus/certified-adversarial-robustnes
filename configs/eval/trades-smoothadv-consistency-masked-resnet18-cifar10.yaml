@@ -1,6 +1,6 @@
 model:
   name: resnet18_10
-  weights_path: "outputs/train/trades_smoothadv_consistency_masked/cifar10_resnet18/<RUN_NAME>/checkpoints/best.pth"
+  weights_path: "outputs/train/trades_smoothadv_consistency_masked/cifar10_resnet18/ResNet_cifar10_20260516_154930/checkpoints/best.pth"
   pretrained: true
   num_classes: 10
 
