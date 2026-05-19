@@ -100,8 +100,8 @@ run_eval() {
 # ============================================================
 # run_eval "trades-awp-masked" "configs/eval/trades-awp-masked-pgdmasked-resnet18-cifar10.yaml"
 # run_eval "trades-smoothad-consistency"  "configs/eval/trades-smoothadv-consistency-resnet18-cifar10.yaml"
-run_eval "trades-smoothadv-cons-masked" "configs/eval/trades-smoothadv-consistency-masked-resnet18-cifar10.yaml"
-
+#run_eval "trades-smoothadv-cons-masked" "configs/eval/trades-smoothadv-consistency-masked-resnet18-cifar10.yaml"
+run_eval "baseline" "configs/eval/evaluation-baseline-resnet18-cifar10.yaml"
 
 
 echo "============================================================"

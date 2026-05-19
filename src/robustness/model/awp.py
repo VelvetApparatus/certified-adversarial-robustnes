@@ -79,6 +79,17 @@ class TradesAWP(object):
         diff = self.diff_in_weights()
         return diff
 
+    def calc_awp_with_loss(self, loss_closure):
+        self.proxy.load_state_dict(self.model.state_dict())
+        self.proxy.train()
+        self.proxy_optim.zero_grad(set_to_none=True)
+
+        loss = -1.0 * loss_closure(self.proxy)
+        loss.backward()
+        self.proxy_optim.step()
+
+        return self.diff_in_weights()
+
     def perturb(self, diff):
         self._add_into_weights(diff, coef=1.0)
 
