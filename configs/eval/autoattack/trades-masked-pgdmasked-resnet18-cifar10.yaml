@@ -8,7 +8,7 @@ model:
   name: resnet18_10
   num_classes: 10
   pretrained: true
-  weights_path: outputs/train/trades_masked_pgd_masked/cifar10_resnet18/ResNet_cifar10_20260512_201707/checkpoints/best.pth
+  weights_path: outputs/train/smooth_adv_masked_pgd_masked/cifar10_resnet18/ResNet_cifar10_20260512_162913/checkpoints/best.pth
 
 test_dataset:
   name: cifar10

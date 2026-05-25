@@ -1,0 +1,2 @@
+timestamp,run_id,run_eval_dir,method,model,dataset,weights_path,comment,norm,epsilon,version,attacks_to_run,max_examples,num_examples,num_total_dataset,clean_acc,autoattack_acc,autoattack_error,num_clean_correct,num_robust_correct
+20260519_171202,20260519_171202_trades,data/out/autoattack/resnet18_cifar10/20260519_171202_trades,trades,resnet18_10,cifar10,outputs/train/trades/cifar10_resnet18/resnet18_10_cifar10_20260508_144417/checkpoints/best.pth,AutoAttack evaluation for TRADES checkpoint,Linf,0.031372549,custom,"[""apgd-ce""]",1000,1000,10000,0.834,0.471,0.529,834,471

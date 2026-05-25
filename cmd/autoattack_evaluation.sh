@@ -25,18 +25,18 @@ python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/smooth-ad
 echo "=== Evaluating Smooth Adv + AWP with AutoAttack ==="
 python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/AWP-smooth-adv-resnet18-cifar10.yaml --no-wandb
 
-echo "=== Evaluating TRADES AWP with AutoAttack ==="
-python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/AWP-trades-resnet18-cifar10.yaml --no-wandb
+#echo "=== Evaluating TRADES AWP with AutoAttack ==="
+#python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/AWP-trades-resnet18-cifar10.yaml --no-wandb
 
 # echo "=== Evaluating TRADES SmoothAdv Consistency Masked with AutoAttack ==="
 # python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/trades-smoothadv-consistency-masked-resnet18-cifar10.yaml --no-wandb
 
 echo "=== Evaluating TRADES SmoothAdv Consistency Masked AWP with AutoAttack ==="
 # Placeholder checkpoint path in config; update configs/eval/autoattack/trades-smoothadv-consistency-masked-awp-resnet18-cifar10.yaml after training.
-# python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/trades-smoothadv-consistency-masked-awp-resnet18-cifar10.yaml --no-wandb
+ python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/trades-smoothadv-consistency-masked-awp-resnet18-cifar10.yaml --no-wandb
 
 echo "=== Evaluating TRADES Masked with AutoAttack ==="
-python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/trades-masked-pgdclean-resnet18-cifar10.yaml --no-wandb
-python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/trades-masked-pgdmasked-resnet18-cifar10.yaml --no-wandb
+#python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/trades-masked-pgdclean-resnet18-cifar10.yaml --no-wandb
+#python -m src.exp.evaluate_autoattack --config configs/eval/autoattack/trades-masked-pgdmasked-resnet18-cifar10.yaml --no-wandb
 
 echo "=== Done ==="
