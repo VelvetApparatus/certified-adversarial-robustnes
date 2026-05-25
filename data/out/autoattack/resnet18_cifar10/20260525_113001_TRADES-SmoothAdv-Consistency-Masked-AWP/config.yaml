@@ -1,0 +1,50 @@
+model:
+  name: resnet18_10
+  pretrained: true
+  weights_path: outputs/train/trades_smoothadv_consistency_masked_awp/cifar10_resnet18/<RUN_NAME>/checkpoints/best.pth
+  loss_fn: cross_entropy
+  num_classes: 10
+test_dataset:
+  name: cifar10
+  root_dir: data/dataset/cifar_10
+  train: false
+  download: true
+  batch_size: 128
+  normalize:
+    enabled: false
+    std: null
+    mean: null
+params:
+  method: TRADES-SmoothAdv-Consistency-Masked-AWP
+  comment: AutoAttack evaluation for TRADES + SmoothAdv + consistency + masking +
+    AWP checkpoint
+  loss_fn: cross_entropy
+  evaluation_dir: data/out/autoattack/resnet18_cifar10
+normalization:
+  enabled: true
+  std:
+  - 0.247
+  - 0.2435
+  - 0.2616
+  mean:
+  - 0.4914
+  - 0.4822
+  - 0.4465
+autoattack:
+  norm: Linf
+  epsilon: 0.031372549
+  version: standard
+  attacks_to_run: null
+  max_examples: 1000
+  seed: 0
+wandb:
+  enabled: false
+  project: certified-robustness
+  entity: ''
+  run_name: ''
+  tags:
+  - evaluation
+  - autoattack
+  - cifar10
+  - resnet18
+  - trades-smoothadv-consistency-masked-awp

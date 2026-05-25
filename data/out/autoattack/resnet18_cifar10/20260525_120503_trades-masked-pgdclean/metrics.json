@@ -1,0 +1,47 @@
+{
+  "method": "trades-masked-pgdclean",
+  "model": "resnet18_10",
+  "dataset": "cifar10",
+  "comment": "AutoAttack evaluation for TRADES masked PGD-clean checkpoint",
+  "run_eval_dir": "data/out/autoattack/resnet18_cifar10/20260525_120503_trades-masked-pgdclean",
+  "autoattack_metrics": {
+    "clean_acc": 0.796,
+    "autoattack_acc": 0.396,
+    "autoattack_error": 0.604,
+    "epsilon": 0.031372549,
+    "norm": "Linf",
+    "version": "standard",
+    "attacks_to_run": [
+      "apgd-ce",
+      "apgd-t",
+      "fab-t",
+      "square"
+    ],
+    "num_examples": 1000,
+    "num_total_dataset": 10000,
+    "num_clean_correct": 796,
+    "num_robust_correct": 396
+  },
+  "row": {
+    "timestamp": "20260525_120503",
+    "run_id": "20260525_120503_trades-masked-pgdclean",
+    "run_eval_dir": "data/out/autoattack/resnet18_cifar10/20260525_120503_trades-masked-pgdclean",
+    "method": "trades-masked-pgdclean",
+    "model": "resnet18_10",
+    "dataset": "cifar10",
+    "weights_path": "outputs/train/trades_masked_pgd_clean/cifar10_resnet18/ResNet_cifar10_20260512_190339/checkpoints/best.pth",
+    "comment": "AutoAttack evaluation for TRADES masked PGD-clean checkpoint",
+    "norm": "Linf",
+    "epsilon": 0.031372549,
+    "version": "standard",
+    "attacks_to_run": "[\"apgd-ce\", \"apgd-t\", \"fab-t\", \"square\"]",
+    "max_examples": 1000,
+    "num_examples": 1000,
+    "num_total_dataset": 10000,
+    "clean_acc": 0.796,
+    "autoattack_acc": 0.396,
+    "autoattack_error": 0.604,
+    "num_clean_correct": 796,
+    "num_robust_correct": 396
+  }
+}

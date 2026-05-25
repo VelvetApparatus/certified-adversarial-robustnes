@@ -1,0 +1,47 @@
+{
+  "method": "adversarial-pgd-training",
+  "model": "resnet18_10",
+  "dataset": "cifar10",
+  "comment": "AutoAttack evaluation for adversarial PGD training checkpoint",
+  "run_eval_dir": "data/out/autoattack/resnet18_cifar10/20260525_105234_adversarial-pgd-training",
+  "autoattack_metrics": {
+    "clean_acc": 0.809,
+    "autoattack_acc": 0.443,
+    "autoattack_error": 0.5569999999999999,
+    "epsilon": 0.031372549,
+    "norm": "Linf",
+    "version": "standard",
+    "attacks_to_run": [
+      "apgd-ce",
+      "apgd-t",
+      "fab-t",
+      "square"
+    ],
+    "num_examples": 1000,
+    "num_total_dataset": 10000,
+    "num_clean_correct": 809,
+    "num_robust_correct": 443
+  },
+  "row": {
+    "timestamp": "20260525_105234",
+    "run_id": "20260525_105234_adversarial-pgd-training",
+    "run_eval_dir": "data/out/autoattack/resnet18_cifar10/20260525_105234_adversarial-pgd-training",
+    "method": "adversarial-pgd-training",
+    "model": "resnet18_10",
+    "dataset": "cifar10",
+    "weights_path": "outputs/train/adversarial_pgd/cifar10_resnet18/resnet18_10_cifar10_20260507_074349/checkpoints/best.pth",
+    "comment": "AutoAttack evaluation for adversarial PGD training checkpoint",
+    "norm": "Linf",
+    "epsilon": 0.031372549,
+    "version": "standard",
+    "attacks_to_run": "[\"apgd-ce\", \"apgd-t\", \"fab-t\", \"square\"]",
+    "max_examples": 1000,
+    "num_examples": 1000,
+    "num_total_dataset": 10000,
+    "clean_acc": 0.809,
+    "autoattack_acc": 0.443,
+    "autoattack_error": 0.5569999999999999,
+    "num_clean_correct": 809,
+    "num_robust_correct": 443
+  }
+}

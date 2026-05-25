@@ -25,9 +25,7 @@ normalization:
 autoattack:
   norm: Linf
   epsilon: 0.031372549
-  version: "custom"
-  attacks_to_run:
-    - "apgd-ce"
+  version: "standard"
   max_examples: 1000
   seed: 0
 

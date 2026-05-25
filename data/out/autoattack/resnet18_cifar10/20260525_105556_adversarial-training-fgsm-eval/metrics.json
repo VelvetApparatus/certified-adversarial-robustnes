@@ -1,0 +1,47 @@
+{
+  "method": "adversarial-training-fgsm-eval",
+  "model": "resnet18_10",
+  "dataset": "cifar10",
+  "comment": "AutoAttack evaluation for adversarial FGSM training checkpoint",
+  "run_eval_dir": "data/out/autoattack/resnet18_cifar10/20260525_105556_adversarial-training-fgsm-eval",
+  "autoattack_metrics": {
+    "clean_acc": 0.917,
+    "autoattack_acc": 0.145,
+    "autoattack_error": 0.855,
+    "epsilon": 0.031372549,
+    "norm": "Linf",
+    "version": "standard",
+    "attacks_to_run": [
+      "apgd-ce",
+      "apgd-t",
+      "fab-t",
+      "square"
+    ],
+    "num_examples": 1000,
+    "num_total_dataset": 10000,
+    "num_clean_correct": 917,
+    "num_robust_correct": 145
+  },
+  "row": {
+    "timestamp": "20260525_105556",
+    "run_id": "20260525_105556_adversarial-training-fgsm-eval",
+    "run_eval_dir": "data/out/autoattack/resnet18_cifar10/20260525_105556_adversarial-training-fgsm-eval",
+    "method": "adversarial-training-fgsm-eval",
+    "model": "resnet18_10",
+    "dataset": "cifar10",
+    "weights_path": "outputs/train/adversarial_fgsm/cifar10_resnet18/resnet18_10_cifar10_20260511_114520/checkpoints/best.pth",
+    "comment": "AutoAttack evaluation for adversarial FGSM training checkpoint",
+    "norm": "Linf",
+    "epsilon": 0.031372549,
+    "version": "standard",
+    "attacks_to_run": "[\"apgd-ce\", \"apgd-t\", \"fab-t\", \"square\"]",
+    "max_examples": 1000,
+    "num_examples": 1000,
+    "num_total_dataset": 10000,
+    "clean_acc": 0.917,
+    "autoattack_acc": 0.145,
+    "autoattack_error": 0.855,
+    "num_clean_correct": 917,
+    "num_robust_correct": 145
+  }
+}

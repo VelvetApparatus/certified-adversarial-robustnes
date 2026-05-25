@@ -1,0 +1,47 @@
+{
+  "method": "SmoothAdv",
+  "model": "resnet18_10",
+  "dataset": "cifar10",
+  "comment": "AutoAttack evaluation for SmoothAdv checkpoint",
+  "run_eval_dir": "data/out/autoattack/resnet18_cifar10/20260525_112309_SmoothAdv",
+  "autoattack_metrics": {
+    "clean_acc": 0.805,
+    "autoattack_acc": 0.186,
+    "autoattack_error": 0.8140000000000001,
+    "epsilon": 0.031372549,
+    "norm": "Linf",
+    "version": "standard",
+    "attacks_to_run": [
+      "apgd-ce",
+      "apgd-t",
+      "fab-t",
+      "square"
+    ],
+    "num_examples": 1000,
+    "num_total_dataset": 10000,
+    "num_clean_correct": 805,
+    "num_robust_correct": 186
+  },
+  "row": {
+    "timestamp": "20260525_112309",
+    "run_id": "20260525_112309_SmoothAdv",
+    "run_eval_dir": "data/out/autoattack/resnet18_cifar10/20260525_112309_SmoothAdv",
+    "method": "SmoothAdv",
+    "model": "resnet18_10",
+    "dataset": "cifar10",
+    "weights_path": "outputs/train/smooth_adv/cifar10_resnet18/resnet18_10_cifar10_20260511_121827/checkpoints/best.pth",
+    "comment": "AutoAttack evaluation for SmoothAdv checkpoint",
+    "norm": "Linf",
+    "epsilon": 0.031372549,
+    "version": "standard",
+    "attacks_to_run": "[\"apgd-ce\", \"apgd-t\", \"fab-t\", \"square\"]",
+    "max_examples": 1000,
+    "num_examples": 1000,
+    "num_total_dataset": 10000,
+    "clean_acc": 0.805,
+    "autoattack_acc": 0.186,
+    "autoattack_error": 0.8140000000000001,
+    "num_clean_correct": 805,
+    "num_robust_correct": 186
+  }
+}
