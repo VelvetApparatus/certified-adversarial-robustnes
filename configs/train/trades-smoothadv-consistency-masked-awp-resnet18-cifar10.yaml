@@ -1,0 +1,140 @@
+model:
+  name: resnet18_10
+  pretrained: false
+  weights_path: null
+  loss_fn: cross_entropy
+  num_classes: 10
+
+dataset:
+  name: cifar10
+  root_dir: ./data/dataset/cifar_10
+  train: true
+  download: true
+  batch_size: 128
+
+split:
+  enabled: true
+  eval_ratio: 0.1
+  eval_size: null
+  seed: 42
+  shuffle: true
+
+training:
+  enabled: true
+  epochs: 140
+  seed: 42
+  criterion: cross_entropy
+  checkpoint: null
+  save_dir: ./outputs/train/trades_smoothadv_consistency_masked_awp/cifar10_resnet18
+  save_best: true
+  save_last: true
+  metric_for_best_model: eval_pgd_acc
+  metric_mode_for_best_model: max
+
+  optimizer:
+    name: sgd
+    lr: 0.1
+    weight_decay: 0.0005
+    momentum: 0.9
+    nesterov: true
+
+  scheduler:
+    name: cosine
+    eta_min: 0.0
+
+  wandb:
+    enabled: true
+    project: certified-robustness
+    entity: null
+    run_name: trades_smoothadv_consistency_masked_awp_cifar10_resnet18
+    tags:
+      - trades
+      - smoothadv
+      - consistency
+      - masked-input
+      - awp
+      - cifar10
+      - resnet18
+
+params:
+  sigma: 0.25
+  beta: 6.0
+  lambda_smooth: 0.5
+  num_noise_vec: 1
+  train_multi_noise: true
+  clamp_noisy: true
+  consistency_type: kl_clean_adv_smooth
+  consistency_weight:
+    value: 0.25
+    scheduler:
+      enabled: true
+      type: linear
+      start: 0.0
+      end: 0.25
+      warmup_epochs: 25
+      ramp_epochs: 35
+  consistency_detach_clean: true
+
+attack:
+  name: smooth_pgd
+  epsilon:
+    value: 0.25
+    scheduler:
+      enabled: true
+      type: linear
+      start: 0.0
+      end: 0.25
+      warmup_epochs: 10
+      ramp_epochs: 10
+  alpha:
+    value: 0.025
+    scheduler:
+      enabled: true
+      type: linear
+      start: 0.0
+      end: 0.025
+      warmup_epochs: 0
+      ramp_epochs: 10
+  steps: 5
+  norm: l2
+  random_start: true
+  clamp_noisy: true
+
+train_pgd:
+  name: pgd
+  epsilon: 0.031372549
+  alpha: 0.007843137
+  steps: 10
+  norm: Linf
+  loss_fn: kl_divergence
+  random_start: true
+
+eval_pgd:
+  name: pgd
+  epsilon: 0.031372549
+  alpha: 0.007843137
+  steps: 20
+  norm: Linf
+  loss_fn: cross_entropy
+  random_start: true
+
+input_mask:
+  p: 0.05
+  ratio: 0.20
+  warmup_steps: 40
+
+awp:
+  weights_diff_coef: 0.0025
+  weights_epsilon: 1.0e-20
+  warmup_steps: 30
+  proxy_optimizer:
+    name: sgd
+    lr: 0.01
+    weight_decay: 0.0005
+    momentum: 0.9
+    nesterov: false
+
+normalization:
+  enabled: true
+  mean: [0.4914, 0.4822, 0.4465]
+  std: [0.2470, 0.2435, 0.2616]

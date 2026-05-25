@@ -219,6 +219,24 @@ class EvaluationTableParams:
 
 
 @dataclass
+class AutoAttackEvaluationParams:
+    method: str
+    comment: Optional[str]
+    loss_fn: LossName
+    evaluation_dir: str
+
+
+@dataclass
+class AutoAttackConfig:
+    norm: str = "Linf"
+    epsilon: float = 8.0 / 255.0
+    version: str = "standard"
+    attacks_to_run: Optional[List[str]] = None
+    max_examples: Optional[int] = None
+    seed: int = 0
+
+
+@dataclass
 class DatasetSplitConfig:
     enabled: bool = False
 

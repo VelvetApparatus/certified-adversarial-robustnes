@@ -4,7 +4,8 @@ from src.config.common import AttackConfig, FGSMAttackConfig, PGDAttackConfig, S
     StAdvAttackConfig, DatasetConfig, OptimizerConfig, WandbConfig, TrainingConfig, SchedulerConfig, ModelConfig, \
     CertificationParams, TradesParams, EvaluationTableParams, DatasetSplitConfig, GaussianTrainingParams, \
     MacerTrainingParams, NormalizeConfig, LinearScheduleConfig, SmoothAdvTrainingParams, AWPParams, InputMaskParams, \
-    InputMaskParams, SmoothMaskedTrainingParams, TradesMaskedParams, TradesSmoothAdvParams
+    InputMaskParams, SmoothMaskedTrainingParams, TradesMaskedParams, TradesSmoothAdvParams, \
+    AutoAttackEvaluationParams, AutoAttackConfig
 
 
 def _normalize_attack_loss_name(loss_name):
@@ -303,6 +304,40 @@ def _parse_evaluation_table_params(cfg: Optional[dict]) -> EvaluationTableParams
         alpha=cfg.get("alpha", 0.01),
         beta=cfg.get("beta", 0.01),
         evaluation_dir=cfg.get("evaluation_dir", None),
+    )
+
+
+def _parse_autoattack_evaluation_params(cfg: Optional[dict]) -> AutoAttackEvaluationParams:
+    cfg = cfg or {}
+    return AutoAttackEvaluationParams(
+        method=cfg.get("method", None),
+        comment=cfg.get("comment", None),
+        loss_fn=cfg.get("loss_fn", None),
+        evaluation_dir=cfg.get("evaluation_dir", None),
+    )
+
+
+def _parse_autoattack_config(cfg: Optional[dict]) -> AutoAttackConfig:
+    cfg = cfg or {}
+    attacks_to_run = cfg.get("attacks_to_run", None)
+    if attacks_to_run is not None:
+        if not isinstance(attacks_to_run, list):
+            raise ValueError("autoattack.attacks_to_run must be a list of attack names or null")
+        attacks_to_run = [str(attack) for attack in attacks_to_run]
+
+    max_examples = cfg.get("max_examples", None)
+    if max_examples is not None:
+        max_examples = int(max_examples)
+        if max_examples <= 0:
+            raise ValueError("autoattack.max_examples must be a positive integer or null")
+
+    return AutoAttackConfig(
+        norm=str(cfg.get("norm", "Linf")),
+        epsilon=float(cfg.get("epsilon", 8.0 / 255.0)),
+        version=str(cfg.get("version", "standard")),
+        attacks_to_run=attacks_to_run,
+        max_examples=max_examples,
+        seed=int(cfg.get("seed", 0)),
     )
 
 
